@@ -28,50 +28,48 @@
 % TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
 
 % Calculate a Line of Words
-% [/f] (word1)..[/f] (wordX) indent --> (wordN+1)..(wordX) /f (word1)../f (wordN) N width final
+% [/f] (word1)..[/f] (wordX) indent --> [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
 /CalcLine {
 
-    /curLineWidth 0 def                                         % (word1)..(wordX) indent
+    /curLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent
     /curLineWords 0 def
     /nxtLineWidth 0 def
 
-    /maxLineWidth PageWidth MarginX 2 mul sub                   % (word1)..(wordX) indent /v width      Maximum line width
-    2 index { Indent sub } if def pop                           % (word1)..(wordX)                      Account for indent if necessary
+    /maxLineWidth PageWidth MarginX 2 mul sub                   % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
+    2 index { Indent sub } if def pop                           % [/f] (word1)..[/f] (wordX)                        Account for indent if necessary
 
     /curFontFace /Times-Roman def
 
     count {
 
-        /final true def                                         % [/f] (cur) (nxt)..(pre)       If we exit, this is the final line
+        /final true def                                         % [/f] (cur)../f (pre)              If we exit, this is the final line
 
-        count -1 roll                                           % ..(pre) [(cur) OR /f]         Bring up current word or next font name
+        count -1 roll                                           % ../f (pre) [(cur) OR /f]          Bring up current word or next font name
 
-        dup 0 eq { pop exit } if                                % ..(pre) [(cur) OR /f]         If this is a zero, we've gone through all the words
+        dup 0 eq { pop exit } if                                % ../f (pre) [(cur) OR /f]          If this is a zero, we've gone through all the words
 
         dup type /nametype eq {
-                                                                % (cur) [/f] (nxt)..(pre) /f
-            /curFontFace exch def                               % (cur) [/f] (nxt)..(pre)           If this is a font name, set variable
-            count -1 roll                                       % [/f] (nxt)..(pre) (cur)           Bring up current word
+                                                                % (cur) [/f] (nxt)../f (pre) /f
+            /curFontFace exch def                               % (cur) [/f] (nxt)../f (pre)        If this is a font name, set variable
+            count -1 roll                                       % [/f] (nxt)../f (pre) (cur)        Bring up current word
         } if
+        curFontFace exch                                        % [/f] (nxt)../f (pre) /f (cur)     Bury current font for print routine
+        curFontFace findfont FontHeight scalefont setfont       % [/f] (nxt)../f (cur)              Set word font
 
-        curFontFace exch                                        % [/f] (nxt)..(pre) /f (cur)        Bury current font for print routine
+        /final false def                                        % [/f] (nxt)../f (cur)              If we exit, this isn't the final line
 
-        curFontFace findfont FontHeight scalefont setfont       % (nxt)..(cur)                  Set word font
+        dup stringwidth pop nxtLineWidth add                    % [/f] (nxt)../f (cur) width        Width of line including this word
+        dup maxLineWidth gt { pop count 2 roll exit } if        % [/f] (nxt)../f (cur) width        If word doesn't fit, stop here
+        /curLineWidth exch def                                  % [/f] (nxt)../f (cur)              Otherwise, add to width
+        /curLineWords curLineWords 1 add def                    % [/f] (nxt)../f (cur)              Increment word counter
 
-        /final false def                                        % (nxt)..(cur)                  If we exit, this isn't the final line
-
-        dup stringwidth pop nxtLineWidth add                    % (nxt)..(cur) width            Width of line including this word
-        dup maxLineWidth gt { pop count 2 roll exit } if        % (nxt)..(cur) width            If word doesn't fit, stop here
-        /curLineWidth exch def                                  % (nxt)..(cur)                  Otherwise, add to width
-        /curLineWords curLineWords 1 add def                    % (nxt)..(cur)                  Increment word counter
-
-        /nxtLineWidth ( ) stringwidth pop curLineWidth add def  % (nxt)..(cur)                  Width of line including this word with whitespace
-        nxtLineWidth maxLineWidth ge { exit } if                % (nxt)..(cur)                  If whitespace doesn't fit, stop here
+        /nxtLineWidth ( ) stringwidth pop curLineWidth add def  % [/f] (nxt)../f (cur)              Width of line including this word with whitespace
+        nxtLineWidth maxLineWidth ge { exit } if                % [/f] (nxt)../f (cur)              If whitespace doesn't fit, stop here
 
     } repeat
 
-                                                                % (wordN+1)..(wordX) /f (word1)../f (wordN)
-    curLineWords curLineWidth final                             % (wordN+1)..(wordX) /f (word1)../f (wordN) N width final
+                                                                % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN)
+    curLineWords curLineWidth final                             % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
 
 } def
 
@@ -79,37 +77,37 @@
 % /f (word1)../f (wordN) N width justify indent --> -
 /PrintLine {
 
-                                                                % (word1)..(wordN) N width justify indent
-    exch 1 index                                                % (word1)..(wordN) N width indent justify indent
-    MarginX exch { Indent add } if                              % (word1)..(wordN) N width indent justify x                         Start at left margin and indent if necessary
-    PageHeight MarginY sub pageLine                             % (word1)..(wordN) N width indent justify x top line                Top margin and line number
-    FontHeight Leading 1 add mul                                % (word1)..(wordN) N width indent justify x top line spacing        Spacing per line
-    mul FontHeight add sub                                      % (word1)..(wordN) N width indent justify x y                       Point of line from the top (pointer is bottom of line)
-    moveto                                                      % (word1)..(wordN) N width indent justify                           Move pointer
+                                                                % /f (word1)../f (wordN) N width justify indent
+    exch 1 index                                                % /f (word1)../f (wordN) N width indent justify indent
+    MarginX exch { Indent add } if                              % /f (word1)../f (wordN) N width indent justify x                       Start at left margin and indent if necessary
+    PageHeight MarginY sub pageLine                             % /f (word1)../f (wordN) N width indent justify x top line              Top margin and line number
+    FontHeight Leading 1 add mul                                % /f (word1)../f (wordN) N width indent justify x top line spacing      Spacing per line
+    mul FontHeight add sub                                      % /f (word1)../f (wordN) N width indent justify x y                     Point of line from the top (pointer is bottom of line)
+    moveto                                                      % /f (word1)../f (wordN) N width indent justify                         Move pointer
 
     /err 0 def
     {
 
-        PageWidth MarginX 2 mul sub                             % (word1)..(wordN) N width indent maxWidth      Maximum width
-        exch { Indent sub } if                                  % (word1)..(wordN) N width maxWidth             Account for indent if necessary
-        exch sub                                                % (word1)..(wordN) N balance                    Amount of space remaining
-        1 index 1 sub div                                       % (word1)..(wordN) N err                        Points to add to whitespace
-        /err exch def                                           % (word1)..(wordN) N
+        PageWidth MarginX 2 mul sub                             % /f (word1)../f (wordN) N width indent maxWidth      Maximum width
+        exch { Indent sub } if                                  % /f (word1)../f (wordN) N width maxWidth             Account for indent if necessary
+        exch sub                                                % /f (word1)../f (wordN) N balance                    Amount of space remaining
+        1 index 1 sub div                                       % /f (word1)../f (wordN) N err                        Points to add to whitespace
+        /err exch def                                           % /f (word1)../f (wordN) N
         
-    } { pop pop } ifelse                                        % (word1)..(wordN) N            Compute err if we should justify, ensure width and indent are discarded
+    } { pop pop } ifelse                                        % /f (word1)../f (wordN) N            Compute err if we should justify, ensure width and indent are discarded
 
     -1 1 {
 
-                                                                % /f (cur) (nxt)..(pre) i       i = words remaining
-        dup 2 mul 1 add -2 roll                                 % (nxt)..(pre) i /f (cur)       Bring up current word or next font name
-        exch findfont FontHeight scalefont setfont              % (nxt)..(pre) i (cur)          Set word font
-        show                                                    % (nxt)..(pre) i                Print current word
+                                                                % /f (cur)../f (wordN) i                i = words remaining
+        dup 2 mul 1 add -2 roll                                 % /f (nxt)../f (wordN) i /f (cur)       Bring up current word or next font name
+        exch findfont FontHeight scalefont setfont              % /f (nxt)../f (wordN) i (cur)          Set word font
+        show                                                    % /f (nxt)../f (wordN) i                Print current word
 
-        1 gt { err 0 ( ) ashow } if                             % (nxt)..(pre)                  If there are more words, print whitespace with extra points
+        1 gt { err 0 ( ) ashow } if                             % /f (nxt)../f (wordN)                  If there are more words, print whitespace with extra points
 
-    } for                                                       %                               Loop through all words
+    } for                                                       %                                   Loop through all words
 
-    /pageLine pageLine 1 add def                                %                               Next time, next line
+    /pageLine pageLine 1 add def                                %                                   Next time, next line
 
 } def
 
@@ -118,15 +116,15 @@
 (There) (should) (also) (be) /Times-Roman-Bold (leading,) /Times-Roman (or) (spacing) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Roman-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
 0
 
-/first true def                                                 % (word1)..(wordX)              This is the first line
+/first true def                                                 % [/f] (word1)..[/f] (wordX)              This is the first line
 {
 
-    first CalcLine                                              % (wordN+1)..(wordX) (word1)..(wordN) N width final                     Calculate a line
-    dup not exch first exch                                     % (wordN+1)..(wordX) (word1)..(wordN) N width justify indent final      Set up printing parameters and condition
-    { PrintLine exit } if                                       % (wordN+1)..(wordX) (word1)..(wordN) N width justify                   If this is the last line, print it and we're done
-    PrintLine                                                   % (wordN+1)..(wordX)                                                    Otherwise, print it and continue
+    first CalcLine                                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line
+    dup not exch first exch                                     % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
+    { PrintLine exit } if                                       % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
+    PrintLine                                                   % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
 
-    /first false def                                            % (wordN+1)..(wordX)            This isn't the first line
+    /first false def                                            % [/f] (wordN+1)..[/f] (wordX)            This isn't the first line
 
 } loop
 
