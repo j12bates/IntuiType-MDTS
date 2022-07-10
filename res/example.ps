@@ -12,13 +12,11 @@
 /Indent 0.5 in def
 /LineWidth PageWidth MarginX 2 mul sub def
 
-/FontFace /Times-Roman def
 /FontHeight 16 def
 /Leading 0.15 def
 
 /pageLine 0 def
 
-% TODO - Change Font/Formatting for Each Word (use raw names in stack or maybe numbers with a decode function)
 % TODO - Paragraph Routine (keep in mind single-line paragraphs)
 % TODO - Handle Overflow of Paragraph into Another Page
 
@@ -27,10 +25,10 @@
 % TODO (maybe) - Space out Err throughout All Chars (single-word lines)
 % TODO (maybe) - Special Things for Dashes and other Word Separators
 
-% TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res but no example, use fancy comments)
+% TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
 
 % Calculate a Line of Words
-% (word1)..(wordX) indent --> (wordN+1)..(wordX) (word1)..(wordN) N width final
+% [/f] (word1)..[/f] (wordX) indent --> (wordN+1)..(wordX) /f (word1)../f (wordN) N width final
 /CalcLine {
 
     /curLineWidth 0 def                                         % (word1)..(wordX) indent
@@ -40,31 +38,45 @@
     /maxLineWidth PageWidth MarginX 2 mul sub                   % (word1)..(wordX) indent /v width      Maximum line width
     2 index { Indent sub } if def pop                           % (word1)..(wordX)                      Account for indent if necessary
 
+    /curFontFace /Times-Roman def
+
     count {
+
+        /final true def                                         % [/f] (cur) (nxt)..(pre)       If we exit, this is the final line
+
+        count -1 roll                                           % ..(pre) [(cur) OR /f]         Bring up current word or next font name
+
+        dup 0 eq { pop exit } if                                % ..(pre) [(cur) OR /f]         If this is a zero, we've gone through all the words
+
+        dup type /nametype eq {
+                                                                % (cur) [/f] (nxt)..(pre) /f
+            /curFontFace exch def                               % (cur) [/f] (nxt)..(pre)           If this is a font name, set variable
+            count -1 roll                                       % [/f] (nxt)..(pre) (cur)           Bring up current word
+        } if
+
+        curFontFace exch                                        % [/f] (nxt)..(pre) /f (cur)        Bury current font for print routine
+
+        curFontFace findfont FontHeight scalefont setfont       % (nxt)..(cur)                  Set word font
 
         /final false def                                        % (nxt)..(cur)                  If we exit, this isn't the final line
 
-        count -1 roll                                           % (nxt)..(cur)                  Bring up current word
-        FontFace findfont FontHeight scalefont setfont          % (nxt)..(cur)                  Set word font
-
         dup stringwidth pop nxtLineWidth add                    % (nxt)..(cur) width            Width of line including this word
-        dup maxLineWidth gt { pop count 1 roll exit } if        % (nxt)..(cur) width            If word doesn't fit, stop here
+        dup maxLineWidth gt { pop count 2 roll exit } if        % (nxt)..(cur) width            If word doesn't fit, stop here
         /curLineWidth exch def                                  % (nxt)..(cur)                  Otherwise, add to width
         /curLineWords curLineWords 1 add def                    % (nxt)..(cur)                  Increment word counter
 
         /nxtLineWidth ( ) stringwidth pop curLineWidth add def  % (nxt)..(cur)                  Width of line including this word with whitespace
         nxtLineWidth maxLineWidth ge { exit } if                % (nxt)..(cur)                  If whitespace doesn't fit, stop here
 
-        /final true def                                         % (nxt)..(cur)                  If we exit, this is the final line
-
     } repeat
 
-    curLineWords curLineWidth final                             % (wordN+1)..(wordX) (word1)..(wordN) N width final
+                                                                % (wordN+1)..(wordX) /f (word1)../f (wordN)
+    curLineWords curLineWidth final                             % (wordN+1)..(wordX) /f (word1)../f (wordN) N width final
 
 } def
 
 % Print a Line of Words 
-% (word1)..(wordN) N width justify indent --> -
+% /f (word1)../f (wordN) N width justify indent --> -
 /PrintLine {
 
                                                                 % (word1)..(wordN) N width justify indent
@@ -88,12 +100,12 @@
 
     -1 1 {
 
-                                                                % (cur) (nxt)..(wordN) i        i = words remaining
-        dup 1 add -1 roll                                       % (nxt)..(wordN) i (cur)        Bring up current word
-        FontFace findfont FontHeight scalefont setfont          % (nxt)..(wordN) i (cur)        Set word font
-        show                                                    % (nxt)..(wordN) i              Print current word
+                                                                % /f (cur) (nxt)..(pre) i       i = words remaining
+        dup 2 mul 1 add -2 roll                                 % (nxt)..(pre) i /f (cur)       Bring up current word or next font name
+        exch findfont FontHeight scalefont setfont              % (nxt)..(pre) i (cur)          Set word font
+        show                                                    % (nxt)..(pre) i                Print current word
 
-        1 gt { err 0 ( ) ashow } if                             % (nxt)..(wordN)                If there are more words, print whitespace with extra points
+        1 gt { err 0 ( ) ashow } if                             % (nxt)..(pre)                  If there are more words, print whitespace with extra points
 
     } for                                                       %                               Loop through all words
 
@@ -101,9 +113,10 @@
 
 } def
 
-(This) (paragraph) (should) (be) (indented,) (meaning) (the) (first) (line) (is) (spaced) (out) (from) (the) (margin;)
-(and) (justified,) (meaning) (the) (ends) (of) (lines) (line) (up) (together) (on) (the) (margin) (--) (quite) (like) (the) (beginnings) (--) (except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
-(There) (should) (also) (be) (leading,) (or) (spacing) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) (fifteen) (percent) (of) (the) (font) (height.)
+/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (indented,) /Times-Roman (meaning) (the) (first) (line) (is) (spaced) (out) (from) (the) (margin;)
+(and) /Times-Roman-Bold (justified,) /Times-Roman (meaning) (the) (ends) (of) (lines) (line) (up) (together) (on) (the) (margin) (--) (quite) (like) (the) (beginnings) (--) (except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
+(There) (should) (also) (be) /Times-Roman-Bold (leading,) /Times-Roman (or) (spacing) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Roman-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
+0
 
 /first true def                                                 % (word1)..(wordX)              This is the first line
 {
