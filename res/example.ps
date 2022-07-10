@@ -14,18 +14,21 @@
 
 /FontFace /Times def
 /FontSize 16 def
+/Leading 0.15 def
 
 /pageLine 0 def
 
 % TODO - Indentation (requires changing line generation width limit)
-% TODO - Change Font/Formatting for Each Word
+% TODO - Change Font/Formatting for Each Word (use raw names in stack or maybe numbers with a decode function)
 % TODO - Paragraph Routine (keep in mind single-line paragraphs)
 % TODO - Handle Overflow of Paragraph into Another Page
+
+% TODO - Additional Formatting Things - Lists, Blockquotes, Code Blocks etc.
 
 % TODO (maybe) - Space out Err throughout All Chars (single-word lines)
 % TODO (maybe) - Special Things for Dashes and other Word Separators
 
-% TODO - Make a Program to Generate this Document from Plaintext
+% TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res but no example, use fancy comments)
 
 % Calculate a Line of Words
 % (word1)..(wordX) --> (wordN+1)..(wordX) (word1)..(wordN) N width final
@@ -64,8 +67,10 @@
 
                                                                 % (word1)..(wordN) N width justify
     MarginX                                                     % (word1)..(wordN) N width justify x
-    PageHeight MarginY pageLine 1 add FontSize mul add sub      % (word1)..(wordN) N width justify x y      Current line from the top
-    moveto                                                      % (word1)..(wordN) N width justify          Move pointer
+    PageHeight MarginY sub pageLine 1 add                       % (word1)..(wordN) N width justify x top line+1             Top of page and line number
+    FontSize Leading 1 add mul                                  % (word1)..(wordN) N width justify x top line+1 spacing     Spacing per line
+    mul Leading sub sub                                         % (word1)..(wordN) N width justify x y                      Point of line from the top (ignore line-zero leading)
+    moveto                                                      % (word1)..(wordN) N width justify                          Move pointer
 
     /err 0 def
     {
