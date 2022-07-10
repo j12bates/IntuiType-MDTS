@@ -10,7 +10,6 @@
 /MarginX 1 in def
 /MarginY 1 in def
 /Indent 0.5 in def
-/LineWidth PageWidth MarginX 2 mul sub def
 
 /FontHeight 16 def
 /Leading 0.15 def
@@ -40,7 +39,7 @@
 
     /curFontFace /Times-Roman def
 
-    count {
+    {
 
         /final true def                                         % [/f] (cur)../f (pre)              If we exit, this is the final line
 
@@ -66,7 +65,7 @@
         /nxtLineWidth ( ) stringwidth pop curLineWidth add def  % [/f] (nxt)../f (cur)              Width of line including this word with whitespace
         nxtLineWidth maxLineWidth ge { exit } if                % [/f] (nxt)../f (cur)              If whitespace doesn't fit, stop here
 
-    } repeat
+    } loop
 
                                                                 % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN)
     curLineWords curLineWidth final                             % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
