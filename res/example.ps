@@ -17,17 +17,24 @@
 /pageLine 0 def
 
 % TODO - Paragraph Routine (keep in mind single-line paragraphs)
-% TODO - Handle Overflow of Paragraph into Another Page
+% TODO - Handle Overflow into Another Page
 
 % TODO - Additional Formatting Things - Lists, Blockquotes, Code Blocks etc.
+% TODO - Columns, Rules, Page Breaks
 
 % TODO (maybe) - Space out Err throughout All Chars (single-word lines)
 % TODO (maybe) - Special Things for Dashes and other Word Separators
+% TODO (maybe) - Higher-Order Indentation (use integer as indent parameter)
 
 % TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
 
 % Calculate a Line of Words
-% [/f] (word1)..[/f] (wordX) indent --> [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
+% BASE [/f] (word1)..[/f] (wordX) indent --> BASE [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
+%
+% The entire stack should be the remaining words in a paragraph,
+% starting at the base, with optional font names below each
+% word. Words that will fit in one line will be placed at the
+% top and a font name will be specified for each.
 /CalcLine {
 
     /curLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent
@@ -37,15 +44,17 @@
     /maxLineWidth PageWidth MarginX 2 mul sub                   % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
     2 index { Indent sub } if def pop                           % [/f] (word1)..[/f] (wordX)                        Account for indent if necessary
 
+    0                                                           % [/f] (word1)..[/f] (wordX) 0      Mark the end of the paragraph
+
     /curFontFace /Times-Roman def
 
     {
 
         /final true def                                         % [/f] (cur)../f (pre)              If we exit, this is the final line
 
-        count -1 roll                                           % ../f (pre) [(cur) OR /f]          Bring up current word or next font name
+        count -1 roll                                           % ../f (pre) [(cur) OR /f OR 0]     Bring up current word, next font name, or end mark
 
-        dup 0 eq { pop exit } if                                % ../f (pre) [(cur) OR /f]          If this is a zero, we've gone through all the words
+        dup 0 eq { count 1 roll exit } if                       % ../f (pre) [(cur) OR /f]          If this is the end mark, replace it and exit
 
         dup type /nametype eq {
                                                                 % (cur) [/f] (nxt)../f (pre) /f
@@ -67,13 +76,18 @@
 
     } loop
 
-                                                                % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN)
+                                                                % [/f] (wordN+1)..[/f] (wordX) 0 /f (word1)../f (wordN)
+    curLineWords 2 mul 1 add -1 roll pop                        % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN)
     curLineWords curLineWidth final                             % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
 
 } def
 
 % Print a Line of Words 
 % /f (word1)../f (wordN) N width justify indent --> -
+%
+% The stack should contain a font name for every word in the line.
+% All words will be printed onto the current line, and the line will
+% be advanced.
 /PrintLine {
 
                                                                 % /f (word1)../f (wordN) N width justify indent
@@ -92,8 +106,8 @@
         exch sub                                                % /f (word1)../f (wordN) N balance                    Amount of space remaining
         1 index 1 sub div                                       % /f (word1)../f (wordN) N err                        Points to add to whitespace
         /err exch def                                           % /f (word1)../f (wordN) N
-        
-    } { pop pop } ifelse                                        % /f (word1)../f (wordN) N            Compute err if we should justify, ensure width and indent are discarded
+
+    } { pop pop } ifelse                                        % /f (word1)../f (wordN) N          Compute err if we should justify, ensure width and indent are discarded
 
     -1 1 {
 
@@ -110,21 +124,44 @@
 
 } def
 
+% Print a Paragraph
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) -> BASE -
+%
+% The stack should consist of only the words in the paragraph.
+% Words are individual strings optionally preceded by a font
+% name. The first word is at the base of the stack and it must
+% have a font name.
+/PrintParagraph {
+
+    /first true def                                             % /f (word1)..[/f] (wordX)          This is the first line
+    {
+
+        first CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line
+        dup not exch first exch                                 % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
+        { PrintLine exit } if                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
+        PrintLine                                               % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
+
+        /first false def                                        % [/f] (wordN+1)..[/f] (wordX)      This isn't the first line
+
+    } loop
+
+    /pageLine pageLine 1 add def                                %                                   Skip a line between paragraphs
+
+} def
+
 /Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (indented,) /Times-Roman (meaning) (the) (first) (line) (is) (spaced) (out) (from) (the) (margin;)
 (and) /Times-Roman-Bold (justified,) /Times-Roman (meaning) (the) (ends) (of) (lines) (line) (up) (together) (on) (the) (margin) (--) (quite) (like) (the) (beginnings) (--) (except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
 (There) (should) (also) (be) /Times-Roman-Bold (leading,) /Times-Roman (or) (spacing) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Roman-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
-0
 
-/first true def                                                 % [/f] (word1)..[/f] (wordX)              This is the first line
-{
+PrintParagraph
 
-    first CalcLine                                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line
-    dup not exch first exch                                     % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
-    { PrintLine exit } if                                       % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
-    PrintLine                                                   % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
+/Times-Roman (Here) (is) (another) (paragraph.)
+(There) (should) (be) (one) (line's) (worth) (of) (space) (between) (this) (and) (the) (previous) (paragraph.)
 
-    /first false def                                            % [/f] (wordN+1)..[/f] (wordX)            This isn't the first line
+PrintParagraph
 
-} loop
+/Times-Roman (This) (paragraph) (is) (only) (one) (line.)
+
+PrintParagraph
 
 showpage
