@@ -14,7 +14,7 @@
 /FontHeight 16 def
 /Leading 0.15 def
 
-/ColumnPortions [ 1 1 ] def
+/ColumnPortions [ 1 ] def
 /Gutter 0.5 in def
 
 /pageLine 0 def
@@ -31,50 +31,49 @@
 
 % TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
 
-% Get X-value and Width of Current Column
-% - --> width x
-/Column {
+% Get Position and Width of Current Line
+% - --> width x y
+/Line {
 
+    % This part finds the width of each portion of column distribution
     PageWidth MarginX 2 mul sub                                     % available                     Total space between margins
     ColumnPortions length 1 sub Gutter mul sub                      % available                     Account for gutters
-    ColumnPortions aload pop                                        % available portions..
-    ColumnPortions length 1 sub { add } repeat                      % available divisor             Sum of all portion values
-    div                                                             % portionWidth                  Width of each portion
+    ColumnPortions aload pop                                        % available ptn..               All portion values
+    ColumnPortions length 1 sub { add } repeat                      % available ptns                Sum them up
+    div                                                             % ptnWidth                      Width of each portion
 
-    ColumnPortions pageColumn get                                   % portionWidth portions         Portions in current column
-    1 index mul                                                     % portionWidth width            Width of current column
+    % This part finds the width of the line
+    ColumnPortions pageColumn get                                   % ptnWidth curPtns              Portions in current column
+    1 index mul                                                     % ptnWidth width                Width of current column
 
-    0 0 1 pageColumn 1 sub { ColumnPortions exch get add } for      % portionWidth width lPortions      Total portions in columns to the left
-    2 index mul pageColumn Gutter mul add MarginX add               % portionWidth width x              X-value of current column (add gutters and left margin}
+    % This part finds the X-value of the start of the line
+    0 0 1 pageColumn 1 sub { ColumnPortions exch get add } for      % ptnWidth width lPtns          Total portions in columns to the left
+    2 index mul pageColumn Gutter mul add MarginX add               % ptnWidth width x              X-value of current column (add gutters and left margin}
 
     3 -1 roll pop                                                   % width x
 
-} def
-
-% Get Y-value of Current Line
-% - --> y
-/Line {
-
-    PageHeight MarginY sub pageLine                                 % top line                      Top margin and line number
-    FontHeight Leading 1 add mul                                    % top line spacing              Spacing per line
-    mul FontHeight add sub                                          % y                             Pointer is at bottom of line
+    % This part finds the Y-value of the line
+    PageHeight MarginY sub pageLine                                 % width x top line              Top margin and line number
+    FontHeight Leading 1 add mul                                    % width x top line spacing      Spacing per line
+    mul FontHeight add sub                                          % width x y                     Pointer is at bottom of line
 
 } def
 
 % Advance to Next Line/Column/Page
-% is this really necessary? only one usage
 /NextLine {
 
     /pageLine pageLine 1 add def                                    %                               Increment line number
 
-    Line MarginY lt                                                 % overflow                      Is this in the bottom margin?
+    Line MarginY lt                                                 % width x overflow              Is this line in the bottom margin?
 
-    {                                                               %                               If so, go to next column
-        /pageLine 0 def                                             %                               Reset line
-        /pageColumn pageColumn 1 add def                            %                               Next column
-        pageColumn ColumnPortions length eq                         % pageFull                      Are we out of columns?
-        { showpage /pageColumn 0 def } if                           %                               If so, end this page and reset column
+    {                                                               % width x                       If so, go to next column
+        /pageLine 0 def                                             % width x                       Reset line
+        /pageColumn pageColumn 1 add def                            % width x                       Next column
+        pageColumn ColumnPortions length eq                         % width x pageFull              Are we out of columns?
+        { showpage /pageColumn 0 def } if                           % width x                       If so, end this page and reset column
     } if
+
+    pop pop                                                         %
 
 } def
 
@@ -92,7 +91,7 @@
     /nxtLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent     Used to check if a word will fit with previous whitespace
     /curLineWords 0 def
 
-    /maxLineWidth Column pop                                    % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
+    /maxLineWidth Line pop pop                                  % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
     2 index { Indent sub } if def pop                           % [/f] (word1)..[/f] (wordX)                        Account for indent if necessary
 
     0                                                           % [/f] (word1)..[/f] (wordX) 0      Mark the end of the paragraph
@@ -145,18 +144,16 @@
 /PrintLine {
 
     % This part places the pointer                              % /f (word1)../f (wordN) N width justify indent
-    exch 1 index                                                % /f (word1)../f (wordN) N width indent justify indent
-    Column exch pop                                             % /f (word1)../f (wordN) N width indent justify indent x        X-value of left side of column
-    exch { Indent add } if                                      % /f (word1)../f (wordN) N width indent justify x               Indent if necessary
-    Line                                                        % /f (word1)../f (wordN) N width indent justify x y             Y-value of line
-    moveto                                                      % /f (word1)../f (wordN) N width indent justify                 Move pointer
+    exch Line                                                   % /f (word1)../f (wordN) N width indent justify width x y       Get line position
+    exch 4 index { Indent add } if exch                         % /f (word1)../f (wordN) N width indent justify width x y       Indent if necessary
+    moveto pop                                                  % /f (word1)../f (wordN) N width indent justify                 Move pointer
 
     % This part calculates the err for justifying
     /err 0 def
     /charErr 0 def
     {
 
-        Column pop                                              % /f (word1)../f (wordN) N width indent maxWidth        Maximum column width
+        Line pop pop                                            % /f (word1)../f (wordN) N width indent maxWidth        Maximum line width
         exch { Indent sub } if                                  % /f (word1)../f (wordN) N width maxWidth               Account for indent if necessary
         exch sub                                                % /f (word1)../f (wordN) N balance                      Amount of space remaining
 
@@ -226,24 +223,11 @@ PrintParagraph
 /Times-Roman (This) (paragraph) (is) (only) (one) (line.)
 
 PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
 
 /Times-Roman (This) (paragraph) (overflows) (into) (the) (right-hand) (column.)
 (Separating) (the) (columns) (is) (a) /Times-Roman-Bold (gutter,) /Times-Roman (a) (bit) (of) (horizontal) (spacing,) (and) (in) (this) (case) (it) (is) (a) (half-inch) (wide.)
 (Sometimes) (you) (will) (see) (lines) (separating) (columns) (instead,) (and) (those) (are) (called) /Times-Roman-Bold (rules.)
 
-PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
-PrintParagraph
 PrintParagraph
 
 /Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (the) (first) (page,) (so) (a) (second) (one) (is) (made) (for) (it.)
