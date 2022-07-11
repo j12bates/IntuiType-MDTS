@@ -1,6 +1,6 @@
 # Intuitive Arrangement
 
-A Lightweight Document Formatting Tool for Generating Documents from Largely Plaintext Source
+A Lightweight Document Formatting Tool for Typesetting Documents from Largely Plaintext Source
 
 ---
 

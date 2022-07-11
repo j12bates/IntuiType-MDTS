@@ -1,4 +1,4 @@
-%!PS
+%!PS-Adobe-2.0
 
 % Convert Inches to Points
 % in --> pt
@@ -15,8 +15,6 @@
 /Leading 0.15 def
 
 /pageLine 0 def
-
-% TODO - Handle Overflow into Another Page
 
 % TODO - Additional Formatting Things - Lists, Blockquotes, Code Blocks etc.
 % TODO - Columns, Rules, Page Breaks
@@ -93,12 +91,21 @@
 % be advanced.
 /PrintLine {
 
-    % This part moves the pointer                               % /f (word1)../f (wordN) N width justify indent
+    % This part places the pointer                              % /f (word1)../f (wordN) N width justify indent
     exch 1 index                                                % /f (word1)../f (wordN) N width indent justify indent
     MarginX exch { Indent add } if                              % /f (word1)../f (wordN) N width indent justify x                       Start at left margin and indent if necessary
-    PageHeight MarginY sub pageLine                             % /f (word1)../f (wordN) N width indent justify x top line              Top margin and line number
-    FontHeight Leading 1 add mul                                % /f (word1)../f (wordN) N width indent justify x top line spacing      Spacing per line
-    mul FontHeight add sub                                      % /f (word1)../f (wordN) N width indent justify x y                     Point of line from the top (pointer is bottom of line)
+    0                                                           % /f (word1)../f (wordN) N width indent justify x 0                     Placeholder Y-value
+
+    2 {
+
+        pop                                                     % /f (word1)../f (wordN) N width indent justify x                       Discard placeholder/incorrect Y-value
+        PageHeight MarginY sub pageLine                         % /f (word1)../f (wordN) N width indent justify x top line              Top margin and line number
+        FontHeight Leading 1 add mul                            % /f (word1)../f (wordN) N width indent justify x top line spacing      Spacing per line
+        mul FontHeight add sub                                  % /f (word1)../f (wordN) N width indent justify x y                     Y-value of line (pointer is bottom of line)
+
+        dup MarginY lt { showpage /pageLine 0 def } if          % /f (word1)../f (wordN) N width indent justify x y                     If we're below the bottom margin, new page and reset line
+
+    } repeat                                                    % /f (word1)../f (wordN) N width indent justify x y                     Calculate two times in case the line had to be changed
     moveto                                                      % /f (word1)../f (wordN) N width indent justify                         Move pointer
 
     % This part calculates the err for justifying
@@ -166,6 +173,25 @@ PrintParagraph
 PrintParagraph
 
 /Times-Roman (This) (paragraph) (is) (only) (one) (line.)
+
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+
+/Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (the) (first) (page,) (so) (a) (second) (one) (is) (made) (for) (it.)
+(If) (you're) (viewing) (this) (in) (a) (document) (reader) (or) (previewer,) (Evince) (for) (instance,)
+(you) (may) (notice) (that) (there) (is) (only) (one) (page,) (and) (that) (this) (paragraph) (starts) (rather) (abruptly,) (without) (indentation.)
+(This) (is) (because) (those) (programs) (are) (expecting) (special) (comments) (with) (the) (page) (count) (and) (numbering.)
+(Programs) (like) (GhostScript,) (however,) (render) (this) (document) (perfectly) (fine.)
+(Also,) (utilities) (like) (PS2PDF) (will) (convert) (this) (document) (to) (PDF,) (and) (document) (readers) (will) (render) (it) (well.)
 
 PrintParagraph
 
