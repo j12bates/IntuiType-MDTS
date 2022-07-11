@@ -16,15 +16,14 @@
 
 /pageLine 0 def
 
-% TODO - Paragraph Routine (keep in mind single-line paragraphs)
 % TODO - Handle Overflow into Another Page
 
 % TODO - Additional Formatting Things - Lists, Blockquotes, Code Blocks etc.
 % TODO - Columns, Rules, Page Breaks
+% TODO - Higher-Order Indentation (use integer as indent parameter)
 
 % TODO (maybe) - Space out Err throughout All Chars (single-word lines)
 % TODO (maybe) - Special Things for Dashes and other Word Separators
-% TODO (maybe) - Higher-Order Indentation (use integer as indent parameter)
 
 % TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
 
@@ -37,9 +36,10 @@
 % top and a font name will be specified for each.
 /CalcLine {
 
-    /curLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent
+                                                                % [/f] (word1)..[/f] (wordX) indent
+    /curLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent     If a word fits, the total width is here
+    /nxtLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent     Used to check if a word will fit with previous whitespace
     /curLineWords 0 def
-    /nxtLineWidth 0 def
 
     /maxLineWidth PageWidth MarginX 2 mul sub                   % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
     2 index { Indent sub } if def pop                           % [/f] (word1)..[/f] (wordX)                        Account for indent if necessary
@@ -50,6 +50,7 @@
 
     {
 
+        % This part checks what's next, it may not be a word
         /final true def                                         % [/f] (cur)../f (pre)              If we exit, this is the final line
 
         count -1 roll                                           % ../f (pre) [(cur) OR /f OR 0]     Bring up current word, next font name, or end mark
@@ -62,15 +63,17 @@
             count -1 roll                                       % [/f] (nxt)../f (pre) (cur)        Bring up current word
         } if
         curFontFace exch                                        % [/f] (nxt)../f (pre) /f (cur)     Bury current font for print routine
-        curFontFace findfont FontHeight scalefont setfont       % [/f] (nxt)../f (cur)              Set word font
 
+        % This part checks if the word will fit in the line
         /final false def                                        % [/f] (nxt)../f (cur)              If we exit, this isn't the final line
 
+        curFontFace findfont FontHeight scalefont setfont       % [/f] (nxt)../f (cur)              Set word font
         dup stringwidth pop nxtLineWidth add                    % [/f] (nxt)../f (cur) width        Width of line including this word
         dup maxLineWidth gt { pop count 2 roll exit } if        % [/f] (nxt)../f (cur) width        If word doesn't fit, stop here
         /curLineWidth exch def                                  % [/f] (nxt)../f (cur)              Otherwise, add to width
         /curLineWords curLineWords 1 add def                    % [/f] (nxt)../f (cur)              Increment word counter
 
+        % This part checks if whitespace will fit in the line
         /nxtLineWidth ( ) stringwidth pop curLineWidth add def  % [/f] (nxt)../f (cur)              Width of line including this word with whitespace
         nxtLineWidth maxLineWidth ge { exit } if                % [/f] (nxt)../f (cur)              If whitespace doesn't fit, stop here
 
@@ -90,7 +93,7 @@
 % be advanced.
 /PrintLine {
 
-                                                                % /f (word1)../f (wordN) N width justify indent
+    % This part moves the pointer                               % /f (word1)../f (wordN) N width justify indent
     exch 1 index                                                % /f (word1)../f (wordN) N width indent justify indent
     MarginX exch { Indent add } if                              % /f (word1)../f (wordN) N width indent justify x                       Start at left margin and indent if necessary
     PageHeight MarginY sub pageLine                             % /f (word1)../f (wordN) N width indent justify x top line              Top margin and line number
@@ -98,6 +101,7 @@
     mul FontHeight add sub                                      % /f (word1)../f (wordN) N width indent justify x y                     Point of line from the top (pointer is bottom of line)
     moveto                                                      % /f (word1)../f (wordN) N width indent justify                         Move pointer
 
+    % This part calculates the err for justifying
     /err 0 def
     {
 
@@ -109,6 +113,7 @@
 
     } { pop pop } ifelse                                        % /f (word1)../f (wordN) N          Compute err if we should justify, ensure width and indent are discarded
 
+    % This part prints each word
     -1 1 {
 
                                                                 % /f (cur)../f (wordN) i                i = words remaining
