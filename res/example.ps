@@ -14,16 +14,69 @@
 /FontHeight 16 def
 /Leading 0.15 def
 
+/ColumnPortions [ 1 1 ] def
+/Gutter 0.5 in def
+
 /pageLine 0 def
+/pageColumn 0 def
 
 % TODO - Additional Formatting Things - Lists, Blockquotes, Code Blocks etc.
-% TODO - Columns, Rules, Page Breaks
+% TODO - Rules, Page Breaks, Auto-Break a Word that's Too Long
 % TODO - Higher-Order Indentation (use integer as indent parameter)
+% TODO - Print Centre- and Right-Align
 
 % TODO (maybe) - Space out Err throughout All Chars (single-word lines)
 % TODO (maybe) - Special Things for Dashes and other Word Separators
+% TODO (maybe) - Font Colour?
 
 % TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
+
+% Get X-value and Width of Current Column
+% - --> width x
+/Column {
+
+    PageWidth MarginX 2 mul sub                                     % available                     Total space between margins
+    ColumnPortions length 1 sub Gutter mul sub                      % available                     Account for gutters
+    ColumnPortions aload pop                                        % available portions..
+    ColumnPortions length 1 sub { add } repeat                      % available divisor             Sum of all portion values
+    div                                                             % portionWidth                  Width of each portion
+
+    ColumnPortions pageColumn get                                   % portionWidth portions         Portions in current column
+    1 index mul                                                     % portionWidth width            Width of current column
+
+    0 0 1 pageColumn 1 sub { ColumnPortions exch get add } for      % portionWidth width lPortions      Total portions in columns to the left
+    2 index mul pageColumn Gutter mul add MarginX add               % portionWidth width x              X-value of current column (add gutters and left margin}
+
+    3 -1 roll pop                                                   % width x
+
+} def
+
+% Get Y-value of Current Line
+% - --> y
+/Line {
+
+    PageHeight MarginY sub pageLine                                 % top line                      Top margin and line number
+    FontHeight Leading 1 add mul                                    % top line spacing              Spacing per line
+    mul FontHeight add sub                                          % y                             Pointer is at bottom of line
+
+} def
+
+% Advance to Next Line/Column/Page
+% is this really necessary? only one usage
+/NextLine {
+
+    /pageLine pageLine 1 add def                                    %                               Increment line number
+
+    Line MarginY lt                                                 % overflow                      Is this in the bottom margin?
+
+    {                                                               %                               If so, go to next column
+        /pageLine 0 def                                             %                               Reset line
+        /pageColumn pageColumn 1 add def                            %                               Next column
+        pageColumn ColumnPortions length eq                         % pageFull                      Are we out of columns?
+        { showpage /pageColumn 0 def } if                           %                               If so, end this page and reset column
+    } if
+
+} def
 
 % Calculate a Line of Words
 % BASE [/f] (word1)..[/f] (wordX) indent --> BASE [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
@@ -39,7 +92,7 @@
     /nxtLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent     Used to check if a word will fit with previous whitespace
     /curLineWords 0 def
 
-    /maxLineWidth PageWidth MarginX 2 mul sub                   % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
+    /maxLineWidth Column pop                                    % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
     2 index { Indent sub } if def pop                           % [/f] (word1)..[/f] (wordX)                        Account for indent if necessary
 
     0                                                           % [/f] (word1)..[/f] (wordX) 0      Mark the end of the paragraph
@@ -93,30 +146,28 @@
 
     % This part places the pointer                              % /f (word1)../f (wordN) N width justify indent
     exch 1 index                                                % /f (word1)../f (wordN) N width indent justify indent
-    MarginX exch { Indent add } if                              % /f (word1)../f (wordN) N width indent justify x                       Start at left margin and indent if necessary
-    0                                                           % /f (word1)../f (wordN) N width indent justify x 0                     Placeholder Y-value
-
-    2 {
-
-        pop                                                     % /f (word1)../f (wordN) N width indent justify x                       Discard placeholder/incorrect Y-value
-        PageHeight MarginY sub pageLine                         % /f (word1)../f (wordN) N width indent justify x top line              Top margin and line number
-        FontHeight Leading 1 add mul                            % /f (word1)../f (wordN) N width indent justify x top line spacing      Spacing per line
-        mul FontHeight add sub                                  % /f (word1)../f (wordN) N width indent justify x y                     Y-value of line (pointer is bottom of line)
-
-        dup MarginY lt { showpage /pageLine 0 def } if          % /f (word1)../f (wordN) N width indent justify x y                     If we're below the bottom margin, new page and reset line
-
-    } repeat                                                    % /f (word1)../f (wordN) N width indent justify x y                     Calculate two times in case the line had to be changed
-    moveto                                                      % /f (word1)../f (wordN) N width indent justify                         Move pointer
+    Column exch pop                                             % /f (word1)../f (wordN) N width indent justify indent x        X-value of left side of column
+    exch { Indent add } if                                      % /f (word1)../f (wordN) N width indent justify x               Indent if necessary
+    Line                                                        % /f (word1)../f (wordN) N width indent justify x y             Y-value of line
+    moveto                                                      % /f (word1)../f (wordN) N width indent justify                 Move pointer
 
     % This part calculates the err for justifying
     /err 0 def
+    /charErr 0 def
     {
 
-        PageWidth MarginX 2 mul sub                             % /f (word1)../f (wordN) N width indent maxWidth      Maximum width
-        exch { Indent sub } if                                  % /f (word1)../f (wordN) N width maxWidth             Account for indent if necessary
-        exch sub                                                % /f (word1)../f (wordN) N balance                    Amount of space remaining
-        1 index 1 sub div                                       % /f (word1)../f (wordN) N err                        Points to add to whitespace
-        /err exch def                                           % /f (word1)../f (wordN) N
+        Column pop                                              % /f (word1)../f (wordN) N width indent maxWidth        Maximum column width
+        exch { Indent sub } if                                  % /f (word1)../f (wordN) N width maxWidth               Account for indent if necessary
+        exch sub                                                % /f (word1)../f (wordN) N balance                      Amount of space remaining
+
+        1 index 1 ne                                            % /f (word1)../f (wordN) N balance oneWord              Is there more than one word in this line?
+        {
+            1 index 1 sub div                                   % /f (word1)../f (wordN) N err                          If so, calculate points to add to whitespace
+            /err exch def                                       % /f (word1)../f (wordN) N
+        } {
+            2 index length 1 sub div                            % /f (word1)../f (wordN) N err                          Otherwise, number of points to add to each char
+            /charErr exch def                                   % /f (word1)../f (wordN) N
+        } ifelse
 
     } { pop pop } ifelse                                        % /f (word1)../f (wordN) N          Compute err if we should justify, ensure width and indent are discarded
 
@@ -126,13 +177,13 @@
                                                                 % /f (cur)../f (wordN) i                i = words remaining
         dup 2 mul 1 add -2 roll                                 % /f (nxt)../f (wordN) i /f (cur)       Bring up current word or next font name
         exch findfont FontHeight scalefont setfont              % /f (nxt)../f (wordN) i (cur)          Set word font
-        show                                                    % /f (nxt)../f (wordN) i                Print current word
+        charErr exch 0 exch ashow                               % /f (nxt)../f (wordN) i                Print current word with any char err
 
         1 gt { err 0 ( ) ashow } if                             % /f (nxt)../f (wordN)                  If there are more words, print whitespace with extra points
 
     } for                                                       %                                   Loop through all words
 
-    /pageLine pageLine 1 add def                                %                                   Next time, next line
+    NextLine                                                    %                                   Next line/column/page
 
 } def
 
@@ -176,6 +227,15 @@ PrintParagraph
 
 PrintParagraph
 PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+PrintParagraph
+
+/Times-Roman (This) (paragraph) (overflows) (into) (the) (right-hand) (column.)
+(Separating) (the) (columns) (is) (a) /Times-Roman-Bold (gutter,) /Times-Roman (a) (bit) (of) (horizontal) (spacing,) (and) (in) (this) (case) (it) (is) (a) (half-inch) (wide.)
+(Sometimes) (you) (will) (see) (lines) (separating) (columns) (instead,) (and) (those) (are) (called) /Times-Roman-Bold (rules.)
+
 PrintParagraph
 PrintParagraph
 PrintParagraph
