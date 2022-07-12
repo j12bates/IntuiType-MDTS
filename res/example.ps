@@ -220,7 +220,7 @@
 
     } loop
 
-    /pageLine pageLine 1 add def                                %                                   Skip a line between paragraphs
+    NextLine                                                    %                                   Skip a line between paragraphs
 
 } def
 
@@ -232,7 +232,16 @@
     DefaultFontFace findfont FontHeight scalefont setfont       % /f (word1) [/f] (word2)..[/f] (wordX) index       Set default font
     (  ) cvs show (.) show                                      % /f (word1) [/f] (word2)..[/f] (wordX)             Print index
 
-    PrintParagraph                                              %                                   Print item as a paragraph
+    {
+
+        true CalcLine                                           % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line (always indent)
+        dup not exch true exch                                  % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
+        { PrintLine exit } if                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
+        PrintLine                                               % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
+
+    } loop
+
+    NextLine                                                    %                                   Skip a line between paragraphs
 
 } def
 
