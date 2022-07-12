@@ -21,7 +21,7 @@
 /pageColumn 0 def
 
 % TODO - Additional Formatting Things - Lists, Blockquotes, Code Blocks etc.
-% TODO - Rules, Page Breaks, Auto-Break a Word that's Too Long
+% TODO - Auto-Break a Word that's Too Long
 % TODO - Higher-Order Indentation (use integer as indent parameter)
 % TODO - Print Centre- and Right-Align
 
@@ -62,18 +62,32 @@
 % Advance to Next Line/Column/Page
 /NextLine {
 
-    /pageLine pageLine 1 add def                                    %                               Increment line number
+    /pageLine pageLine 1 add def                                    %                               Next line
 
     Line MarginY lt                                                 % width x overflow              Is this line in the bottom margin?
-
-    {                                                               % width x                       If so, go to next column
-        /pageLine 0 def                                             % width x                       Reset line
-        /pageColumn pageColumn 1 add def                            % width x                       Next column
-        pageColumn ColumnPortions length eq                         % width x pageFull              Are we out of columns?
-        { showpage /pageColumn 0 def } if                           % width x                       If so, end this page and reset column
-    } if
+    { NextColumn } if                                               % width x                       If so, next column
 
     pop pop                                                         %
+
+} def
+
+% Advance to Next Column/Page
+/NextColumn {
+
+    /pageLine 0 def                                                 %                               Reset line
+    /pageColumn pageColumn 1 add def                                %                               Next column
+
+    pageColumn ColumnPortions length eq                             % pageFull                      Are we out of columns?
+    { NextPage } if                                                 %                               If so, next page
+
+} def
+
+% Advance to Next Page
+/NextPage {
+
+    /pageLine 0 def                                                 %                               Reset line
+    /pageColumn 0 def                                               %                               Reset column
+    showpage                                                        %                               Next page
 
 } def
 
@@ -209,6 +223,26 @@
 
 } def
 
+% Print a Rule
+/PrintRule {
+
+    newpath                                                     %                                   New path
+
+    Line moveto                                                 % width                             Move pointer to current line
+    Indent 2 div FontHeight 2 div rmoveto                       % width                             Centre of line and just past indentation
+    Indent sub 0 rlineto                                        %                                   Symmetric line
+
+    gsave                                                       %                                   Save Graphics Context
+
+    0.5 setgray 2 setlinewidth 2 setlinecap                     %                                   Grey, 2 pt line, square cap
+    stroke                                                      %                                   Draw
+
+    grestore                                                    %                                   Restore Graphics Context
+
+    NextLine                                                    %                                   Don't use this line
+
+} def
+
 /Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (indented,) /Times-Roman (meaning) (the) (first) (line) (is) (spaced) (out) (from) (the) (margin;)
 (and) /Times-Roman-Bold (justified,) /Times-Roman (meaning) (the) (ends) (of) (lines) (line) (up) (together) (on) (the) (margin) (--) (quite) (like) (the) (beginnings) (--) (except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
 (There) (should) (also) (be) /Times-Roman-Bold (leading,) /Times-Roman (or) (spacing) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Roman-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
@@ -223,12 +257,14 @@ PrintParagraph
 /Times-Roman (This) (paragraph) (is) (only) (one) (line.)
 
 PrintParagraph
+PrintRule
 
 /Times-Roman (This) (paragraph) (overflows) (into) (the) (right-hand) (column.)
 (Separating) (the) (columns) (is) (a) /Times-Roman-Bold (gutter,) /Times-Roman (a) (bit) (of) (horizontal) (spacing,) (and) (in) (this) (case) (it) (is) (a) (half-inch) (wide.)
 (Sometimes) (you) (will) (see) (lines) (separating) (columns) (instead,) (and) (those) (are) (called) /Times-Roman-Bold (rules.)
 
 PrintParagraph
+NextPage
 
 /Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (the) (first) (page,) (so) (a) (second) (one) (is) (made) (for) (it.)
 (If) (you're) (viewing) (this) (in) (a) (document) (reader) (or) (previewer,) (Evince) (for) (instance,)
