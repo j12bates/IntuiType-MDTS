@@ -10,6 +10,7 @@
 /MarginX 1 in def
 /MarginY 1 in def
 /Indent 0.5 in def
+/PaddingX 0 in def
 
 /DefaultFontFace /Times-Roman def
 /FontHeight 16 def
@@ -21,7 +22,7 @@
 /pageLine 0 def
 /pageColumn 0 def
 
-% TODO - Additional Formatting Things - Blockquotes, Code Blocks etc.
+% TODO - Additional Formatting Things - Code Blocks etc.
 % TODO - Auto-Break a Word that's Too Long
 % TODO - Higher-Order Indentation (use integer as indent parameter)
 % TODO - Print Centre- and Right-Align
@@ -46,10 +47,12 @@
     % This part finds the width of the line
     ColumnPortions pageColumn get                                   % ptnWidth curPtns              Portions in current column
     1 index mul                                                     % ptnWidth width                Width of current column
+    PaddingX 2 mul sub                                              % ptnWidth width                Account for padding
 
     % This part finds the X-value of the start of the line
     0 0 1 pageColumn 1 sub { ColumnPortions exch get add } for      % ptnWidth width lPtns          Total portions in columns to the left
-    2 index mul pageColumn Gutter mul add MarginX add               % ptnWidth width x              X-value of current column (add gutters and left margin}
+    2 index mul pageColumn Gutter mul add MarginX add               % ptnWidth width x              X-value of column (add columns and gutters to the left)
+    PaddingX add                                                    % ptnWidth width x              Account for padding
 
     3 -1 roll pop                                                   % width x
 
@@ -208,6 +211,8 @@
 % have a font name.
 /PrintParagraph {
 
+    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX)          No padding
+
     /first true def                                             % /f (word1)..[/f] (wordX)          This is the first line
     {
 
@@ -224,9 +229,30 @@
 
 } def
 
+% Print a Block-Quote
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) -> BASE -
+/PrintBlockQuote {
+
+    /PaddingX Indent def                                        % /f (word1) [/f] (word2)..[/f] (wordX)     Pad by the indentation amount
+
+    {
+
+        false CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line (never indent)
+        dup not exch false exch                                 % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
+        { PrintLine exit } if                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
+        PrintLine                                               % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
+
+    } loop
+
+    NextLine                                                    %                                   Skip a line
+
+} def
+
 % Print a List Item
 % BASE /f (word1) [/f] (word2)..[/f] (wordX) index -> BASE -
 /PrintListItem {
+
+    /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX)             No padding
 
     Line moveto pop                                             % /f (word1) [/f] (word2)..[/f] (wordX) index       Move pointer to current line
     DefaultFontFace findfont FontHeight scalefont setfont       % /f (word1) [/f] (word2)..[/f] (wordX) index       Set default font
@@ -241,18 +267,20 @@
 
     } loop
 
-    NextLine                                                    %                                   Skip a line between paragraphs
+    NextLine                                                    %                                   Skip a line
 
 } def
 
 % Print a Rule
 /PrintRule {
 
+    /PaddingX Indent 2 div def                                  %                                   Pad by half the indentation amount
+
     newpath                                                     %                                   New path
 
     Line moveto                                                 % width                             Move pointer to current line
-    Indent 2 div FontHeight 2 div rmoveto                       % width                             Centre of line and just past indentation
-    Indent sub 0 rlineto                                        %                                   Symmetric line
+    0 FontHeight 2 div rmoveto                                  % width                             Centre of line
+    0 rlineto                                                   %                                   Symmetric rule
 
     gsave                                                       %                                   Save Graphics Context
 
@@ -279,6 +307,13 @@ PrintParagraph
 /Times-Roman (This) (paragraph) (is) (only) (one) (line.)
 
 2 PrintListItem
+
+/Times-Roman (This) (is) (a) /Times-Roman-Bold (block-quote.)
+/Times-Roman (It) (is) (indented) (from) (both) (the) (left) (and) (the) (right,) (and) (justified) (as) (well.)
+(Block-quotes) (are) (generally) (used) (when) (a) (quote) (is) (four) (lines) (or) (more.)
+
+PrintBlockQuote
+
 PrintRule
 
 /Times-Roman (This) (paragraph) (overflows) (into) (the) (right-hand) (column.)
