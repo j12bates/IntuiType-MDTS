@@ -11,6 +11,7 @@
 /MarginY 1 in def
 /Indent 0.5 in def
 
+/DefaultFontFace /Times-Roman def
 /FontHeight 16 def
 /Leading 0.15 def
 
@@ -20,7 +21,7 @@
 /pageLine 0 def
 /pageColumn 0 def
 
-% TODO - Additional Formatting Things - Lists, Blockquotes, Code Blocks etc.
+% TODO - Additional Formatting Things - Blockquotes, Code Blocks etc.
 % TODO - Auto-Break a Word that's Too Long
 % TODO - Higher-Order Indentation (use integer as indent parameter)
 % TODO - Print Centre- and Right-Align
@@ -223,6 +224,18 @@
 
 } def
 
+% Print a List Item
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) index -> BASE -
+/PrintListItem {
+
+    Line moveto pop                                             % /f (word1) [/f] (word2)..[/f] (wordX) index       Move pointer to current line
+    DefaultFontFace findfont FontHeight scalefont setfont       % /f (word1) [/f] (word2)..[/f] (wordX) index       Set default font
+    (  ) cvs show (.) show                                      % /f (word1) [/f] (word2)..[/f] (wordX)             Print index
+
+    PrintParagraph                                              %                                   Print item as a paragraph
+
+} def
+
 % Print a Rule
 /PrintRule {
 
@@ -252,11 +265,11 @@ PrintParagraph
 /Times-Roman (Here) (is) (another) (paragraph.)
 (There) (should) (be) (one) (line's) (worth) (of) (space) (between) (this) (and) (the) (previous) (paragraph.)
 
-PrintParagraph
+1 PrintListItem
 
 /Times-Roman (This) (paragraph) (is) (only) (one) (line.)
 
-PrintParagraph
+2 PrintListItem
 PrintRule
 
 /Times-Roman (This) (paragraph) (overflows) (into) (the) (right-hand) (column.)
@@ -264,7 +277,6 @@ PrintRule
 (Sometimes) (you) (will) (see) (lines) (separating) (columns) (instead,) (and) (those) (are) (called) /Times-Roman-Bold (rules.)
 
 PrintParagraph
-NextPage
 
 /Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (the) (first) (page,) (so) (a) (second) (one) (is) (made) (for) (it.)
 (If) (you're) (viewing) (this) (in) (a) (document) (reader) (or) (previewer,) (Evince) (for) (instance,)
