@@ -25,7 +25,6 @@
 % TODO - Additional Formatting Things - Code Blocks etc.
 % TODO - Auto-Break a Word that's Too Long
 % TODO - Higher-Order Indentation (use integer as indent parameter)
-% TODO - Print Centre- and Right-Align
 
 % TODO (maybe) - Space out Err throughout All Chars (single-word lines)
 % TODO (maybe) - Special Things for Dashes and other Word Separators
@@ -154,37 +153,53 @@
 } def
 
 % Print a Line of Words 
-% /f (word1)../f (wordN) N width justify indent --> -
+% /f (word1)../f (wordN) N width justify align indent --> -
 %
 % The stack should contain a font name for every word in the line.
 % All words will be printed onto the current line, and the line will
 % be advanced.
 /PrintLine {
 
-    % This part places the pointer                              % /f (word1)../f (wordN) N width justify indent
-    exch Line                                                   % /f (word1)../f (wordN) N width indent justify width x y       Get line position
-    exch 4 index { Indent add } if exch                         % /f (word1)../f (wordN) N width indent justify width x y       Indent if necessary
-    moveto pop                                                  % /f (word1)../f (wordN) N width indent justify                 Move pointer
+    % This part calculates the remaining space in the line      % /f (word1)../f (wordN) N width justify align indent
+    4 -1 roll                                                   % /f (word1)../f (wordN) N justify align indent width
+    Line pop pop                                                % /f (word1)../f (wordN) N justify align indent width maxWidth      Maximum line width
+    2 index { Indent sub } if                                   % /f (word1)../f (wordN) N justify align indent width maxWidth      Account for indent if necessary
+    exch sub                                                    % /f (word1)../f (wordN) N justify align indent balance             Amount of space remaining
+    4 -2 roll exch                                              % /f (word1)../f (wordN) N indent balance align justify
 
     % This part calculates the err for justifying
     /err 0 def
     /charErr 0 def
     {
-
-        Line pop pop                                            % /f (word1)../f (wordN) N width indent maxWidth        Maximum line width
-        exch { Indent sub } if                                  % /f (word1)../f (wordN) N width maxWidth               Account for indent if necessary
-        exch sub                                                % /f (word1)../f (wordN) N balance                      Amount of space remaining
-
-        1 index 1 ne                                            % /f (word1)../f (wordN) N balance oneWord              Is there more than one word in this line?
+                                                                % /f (word1)../f (wordN) N indent balance align
+        pop 2 index                                             % /f (word1)../f (wordN) N indent balance N
+        dup 1 ne                                                % /f (word1)../f (wordN) N indent balance N plural      Is there more than one word in this line?
         {
-            1 index 1 sub div                                   % /f (word1)../f (wordN) N err                          If so, calculate points to add to whitespace
-            /err exch def                                       % /f (word1)../f (wordN) N
+            1 sub div                                           % /f (word1)../f (wordN) N indent err                   If so, calculate points to add to whitespace
+            /err exch def                                       % /f (word1)../f (wordN) N indent
         } {
-            2 index length 1 sub div                            % /f (word1)../f (wordN) N err                          Otherwise, number of points to add to each char
-            /charErr exch def                                   % /f (word1)../f (wordN) N
+            pop 4 index length                                  % /f (word1)../f (wordN) N indent chars                 Otherwise, number of chars in word
+            1 sub div                                           % /f (word1)../f (wordN) N indent charErr               Calculate points to add to each char
+            /charErr exch def                                   % /f (word1)../f (wordN) N indent
         } ifelse
 
-    } { pop pop } ifelse                                        % /f (word1)../f (wordN) N          Compute err if we should justify, ensure width and indent are discarded
+        Line 3 -1 roll pop                                      % /f (word1)../f (wordN) N indent x y                   Use default X-value to start at left margin
+
+    }
+
+    % This part calculates the offset for aligning
+    {
+
+                                                                % /f (word1)../f (wordN) N indent balance align
+        2 div mul                                               % /f (word1)../f (wordN) N indent offset                Offset to align to the right side
+        Line exch 4 -2 roll pop                                 % /f (word1)../f (wordN) N indent y x offset            Default X-value
+        add exch                                                % /f (word1)../f (wordN) N indent x y                   Add offset to align properly
+
+    } ifelse                                                    % /f (word1)../f (wordN) N indent x y
+
+    % This part positions the pointer
+    3 1 roll exch { Indent add } if exch                        % /f (word1)../f (wordN) N x y                          Account for indentation if necessary
+    moveto                                                      % /f (word1)../f (wordN) N                              Move pointer
 
     % This part prints each word
     -1 1 {
@@ -216,10 +231,9 @@
     /first true def                                             % /f (word1)..[/f] (wordX)          This is the first line
     {
 
-        first CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line
-        dup not exch first exch                                 % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
-        { PrintLine exit } if                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
-        PrintLine                                               % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
+        first CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
+        dup not 0 first 4 -1 roll                               % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
 
         /first false def                                        % [/f] (wordN+1)..[/f] (wordX)      This isn't the first line
 
@@ -229,6 +243,32 @@
 
 } def
 
+% Print a Paragraph with Alignment
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) indent align -> BASE -
+%
+% Alignment is specified using an integer. 0 means left-align,
+% 1 means centre-align, and 2 means right-align.
+/PrintParagraphAligned {
+
+    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) align        No padding
+    /align exch def                                             % /f (word1)..[/f] (wordX)              Set variable
+
+    /indent exch def                                            % /f (word1)..[/f] (wordX)          Indent the first line if necessary
+    {
+
+        indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
+        false align indent 4 -1 roll                            % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
+
+        /indent false def                                       % [/f] (wordN+1)..[/f] (wordX)      Don't indent subsequent lines
+
+    } loop
+
+    NextLine                                                    %                                   Skip a line between paragraphs
+
+} def
+
+
 % Print a Block-Quote
 % BASE /f (word1) [/f] (word2)..[/f] (wordX) -> BASE -
 /PrintBlockQuote {
@@ -237,10 +277,9 @@
 
     {
 
-        false CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line (never indent)
-        dup not exch false exch                                 % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
-        { PrintLine exit } if                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
-        PrintLine                                               % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
+        false CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
+        dup not 0 false 4 -1 roll                               % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
 
     } loop
 
@@ -260,10 +299,9 @@
 
     {
 
-        true CalcLine                                           % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                     Calculate a line (always indent)
-        dup not exch true exch                                  % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent final      Set up printing parameters and condition
-        { PrintLine exit } if                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify indent            If this is the last line, print it and we're done
-        PrintLine                                               % [/f] (wordN+1)..[/f] (wordX)                                                          Otherwise, print it and continue
+        true CalcLine                                           % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
+        dup not 0 true 4 -1 roll                                % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
 
     } loop
 
@@ -294,10 +332,30 @@
 } def
 
 /Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (indented,) /Times-Roman (meaning) (the) (first) (line) (is) (spaced) (out) (from) (the) (margin;)
-(and) /Times-Roman-Bold (justified,) /Times-Roman (meaning) (the) (ends) (of) (lines) (line) (up) (together) (on) (the) (margin) (--) (quite) (like) (the) (beginnings) (--) (except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
+(and) /Times-Roman-Bold (justified,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (left) (margin,) (and) (the) (right) (side) (is) (flush) (with) (the) (right) (margin,)
+(except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
 (There) (should) (also) (be) /Times-Roman-Bold (leading,) /Times-Roman (or) (spacing) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Roman-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
 
 PrintParagraph
+
+/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (left-aligned,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (left) (margin,) (and) (nothing) (else.)
+(This) (means) (that) (the) (right) (side) (of) (the) (paragraph) (is) (uneven,) (or) /Times-Roman-Bold (ragged.) /Times-Roman
+(This) (is) (how) (one) (typically) (writes) (a) (paragraph,) (and) (how) (most) (style) (guides) (suggest) (a) (paragraph) (be) (typeset.)
+
+true 0 PrintParagraphAligned
+
+/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (right-aligned,) /Times-Roman (which) (is) (the) (opposite) (of) (left-aligned.)
+(The) (right) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (right) (margin,) (and) (the) (left) (side) (is) (ragged.)
+(Because) (of) (the) (latter) (detail,) (and) (since) (it) (wouldn't) (be) (consistent,) (this) (paragraph) (is) (not) (indented.)
+(Paragraphs) (typically) (are) (not) (aligned) (this) (way) (as) (it) (makes) (it) (harder) (to) (start) (reading) (the) (next) (line.)
+
+false 2 PrintParagraphAligned
+
+/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (centre-aligned,) /Times-Roman (meaning) (each) (line) (is) (centred) (horizontally) (on) (the) (page.)
+(Both) (sides) (of) (the) (paragraph) (are) (ragged) (in) (this) (case.)
+(This) (is) (used) (sometimes) (for) (headings) (and) (titles,) (and) (not) (for) (paragraphs.)
+
+false 1 PrintParagraphAligned
 
 /Times-Roman (Here) (is) (another) (paragraph.)
 (There) (should) (be) (one) (line's) (worth) (of) (space) (between) (this) (and) (the) (previous) (paragraph.)
