@@ -13,10 +13,10 @@
 /PaddingX 0 in def
 
 /DefaultFontFace /Times-Roman def
-/FontHeight 16 def
+/FontHeight 12 def
 /Leading 0.15 def
 
-/ColumnPortions [ 1 ] def
+/ColumnPortions [ 1 1 ] def
 /Gutter 0.5 in def
 
 /pageLine 0 def
@@ -112,8 +112,6 @@
     2 index { Indent sub } if def pop                           % [/f] (word1)..[/f] (wordX)                        Account for indent if necessary
 
     0                                                           % [/f] (word1)..[/f] (wordX) 0      Mark the end of the paragraph
-
-    /curFontFace /Times-Roman def
 
     {
 
@@ -331,56 +329,77 @@
 
 } def
 
-/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (indented,) /Times-Roman (meaning) (the) (first) (line) (is) (spaced) (out) (from) (the) (margin;)
-(and) /Times-Roman-Bold (justified,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (left) (margin,) (and) (the) (right) (side) (is) (flush) (with) (the) (right) (margin,)
+/Times-Roman (The) (first) (line) (of) (this) (paragraph) (should) (be) /Times-Bold (indented,) /Times-Roman (meaning) (there) (is) (space) (between) (the) (left) (margin) (and) (the) (type,)
+(which) (in) (this) (case) (it) (should) (be) /Times-Italic (one) (inch) /Times-Roman (of) (space.)
+(This) (paragraph) (should) (be) /Times-Bold (justified,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (is) (flush) (with) (the) (left) (margin,) (and) (the) (right) (side) (is) (flush) (with) (the) (right) (margin,)
 (except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
-(There) (should) (also) (be) /Times-Roman-Bold (leading,) /Times-Roman (or) (spacing) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Roman-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
+(There) (should) (also) (be) /Times-Bold (leading,) /Times-Roman (or) (space) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
 
 PrintParagraph
 
-/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (left-aligned,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (left) (margin,) (and) (nothing) (else.)
-(This) (means) (that) (the) (right) (side) (of) (the) (paragraph) (is) (uneven,) (or) /Times-Roman-Bold (ragged.) /Times-Roman
+/Times-Roman (Here) (is) (another) (paragraph.)
+(There) (should) (be) (one) (line's) (worth) (of) (space) (between) (this) (and) (the) (previous) (paragraph.)
+(Paragraph) (spacing) (is) (used) (in) (addition) (to) (indentation) (to) (emphasize) (the) (change) (in) (subject) (matter) (between) (paragraphs.)
+
+PrintParagraph
+
+PrintRule
+
+/Times-Roman (This) (paragraph) (should) (be) /Times-Bold (left-aligned,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (left) (margin,) (and) (nothing) (else.)
+(This) (means) (that) (the) (right) (side) (of) (the) (paragraph) (is) (uneven,) (or) /Times-Bold (ragged.) /Times-Roman
 (This) (is) (how) (one) (typically) (writes) (a) (paragraph,) (and) (how) (most) (style) (guides) (suggest) (a) (paragraph) (be) (typeset.)
 
 true 0 PrintParagraphAligned
 
-/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (right-aligned,) /Times-Roman (which) (is) (the) (opposite) (of) (left-aligned.)
+/Times-Roman (This) (paragraph) (should) (be) /Times-Bold (right-aligned.) /Times-Roman
 (The) (right) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (right) (margin,) (and) (the) (left) (side) (is) (ragged.)
-(Because) (of) (the) (latter) (detail,) (and) (since) (it) (wouldn't) (be) (consistent,) (this) (paragraph) (is) (not) (indented.)
+(Because) (of) (the) (latter) (detail,) (and) (since) (it) (wouldn't) (be) (consistent,) (the) (first) (line) (of) (this) (paragraph) (is) (not) (indented.)
 (Paragraphs) (typically) (are) (not) (aligned) (this) (way) (as) (it) (makes) (it) (harder) (to) (start) (reading) (the) (next) (line.)
 
 false 2 PrintParagraphAligned
 
-/Times-Roman (This) (paragraph) (should) (be) /Times-Roman-Bold (centre-aligned,) /Times-Roman (meaning) (each) (line) (is) (centred) (horizontally) (on) (the) (page.)
-(Both) (sides) (of) (the) (paragraph) (are) (ragged) (in) (this) (case.)
+/Times-Roman (This) (paragraph) (should) (be) /Times-Bold (centre-aligned,) /Times-Roman (meaning) (each) (line) (is) (horizontally) (centred) (on) (the) (page.)
+(Both) (sides) (of) (the) (paragraph) (are) (ragged.)
 (This) (is) (used) (sometimes) (for) (headings) (and) (titles,) (and) (not) (for) (paragraphs.)
 
 false 1 PrintParagraphAligned
 
-/Times-Roman (Here) (is) (another) (paragraph.)
-(There) (should) (be) (one) (line's) (worth) (of) (space) (between) (this) (and) (the) (previous) (paragraph.)
+PrintRule
+
+/Times-Roman (This) (paragraph) (should) (overflow) (into) (the) (right-hand) (column.)
+(Separating) (the) (columns) (should) (be) (a) /Times-Bold (gutter,) /Times-Roman (which) (is) (a) (bit) (of) (horizontal) (spacing,)
+(and) (in) (this) (case) (it) (should) (be) /Times-Italic (half) (an) (inch) /Times-Roman (wide.)
+(Sometimes) (you) (will) (see) (lines) (separating) (columns) (instead,) (and) (those) (are) (called) /Times-Bold (rules.) /Times-Roman
+(In) (fact,) (a) (horizontal) (rule) (should) (be) (between) (this) (paragraph) (and) (the) (previous) (one.)
+
+PrintParagraph
+
+PrintRule
+
+/Times-Roman (This) (is) (the) (first) (item) (in) (a) (list.)
+(It) (should) (be) (preceded) (by) (the) (number) (one,) (and) (every) (line) (should) (be) (indented.)
 
 1 PrintListItem
 
-/Times-Roman (This) (paragraph) (is) (only) (one) (line.)
+/Times-Roman (This) (is) (the) (second) (item) (in) (a) (list.)
+(Lists) (like) (these) (are) (generally) (used) (in) (memorandums) (for) (brevity) (and) (ease) (in) (reading.)
 
 2 PrintListItem
 
-/Times-Roman (This) (is) (a) /Times-Roman-Bold (block-quote.)
-/Times-Roman (It) (is) (indented) (from) (both) (the) (left) (and) (the) (right,) (and) (justified) (as) (well.)
-(Block-quotes) (are) (generally) (used) (when) (a) (quote) (is) (four) (lines) (or) (more.)
+/Times-Roman (This) (is) (the) (third) (item) (in) (a) (list.)
+(Three) (is) (generally) (the) (minimum) (number) (of) (items) (in) (a) (list,) (as) (having) (fewer) (items) (will) (make) (the) (writing) (simple) (enough) (to) (be) (understood) (without) (the) (context) (of) (one.)
+
+3 PrintListItem
+
+/Times-Roman (This) (is) (a) /Times-Bold (block-quote.) /Times-Roman
+(The) (paragraph) (should) (be) (justified,) (and) (every) (line) (should) (be) (indented) (from) (both) (the) (left) (and) (the) (right,) (making) (the) (paragraph) (horizontally) (condensed.)
+(Block-quotes) (are) (generally) (used) (when) (a) (quote) (or) (excerpt) (is) (four) (lines) (or) (more.)
 
 PrintBlockQuote
 
 PrintRule
 
-/Times-Roman (This) (paragraph) (overflows) (into) (the) (right-hand) (column.)
-(Separating) (the) (columns) (is) (a) /Times-Roman-Bold (gutter,) /Times-Roman (a) (bit) (of) (horizontal) (spacing,) (and) (in) (this) (case) (it) (is) (a) (half-inch) (wide.)
-(Sometimes) (you) (will) (see) (lines) (separating) (columns) (instead,) (and) (those) (are) (called) /Times-Roman-Bold (rules.)
-
-PrintParagraph
-
-/Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (the) (first) (page,) (so) (a) (second) (one) (is) (made) (for) (it.)
+/Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (this) (page,) (so) (it) (should) (overflow) (into) (another) (one.)
 (If) (you're) (viewing) (this) (in) (a) (document) (reader) (or) (previewer,) (Evince) (for) (instance,)
 (you) (may) (notice) (that) (there) (is) (only) (one) (page,) (and) (that) (this) (paragraph) (starts) (rather) (abruptly,) (without) (indentation.)
 (This) (is) (because) (those) (programs) (are) (expecting) (special) (comments) (with) (the) (page) (count) (and) (numbering.)
