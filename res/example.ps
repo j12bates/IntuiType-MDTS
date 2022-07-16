@@ -40,9 +40,7 @@ PaperSize /a4 eq {
 /pageLine 0 def
 /pageColumn 0 def
 
-% TODO - Additional Formatting Things - Code Blocks etc.
 % TODO - Auto-Break a Word that's Too Long
-% TODO - Higher-Order Indentation (use integer as indent parameter)
 % TODO - Headers
 % TODO - Sections, Global Parameters (Font Size, Leading, Columns) can be Changed (calculate position by adding an offset to Y which is reset on new page)
 
@@ -127,7 +125,7 @@ PaperSize /a4 eq {
     /curLineWords 0 def
 
     /maxLineWidth Line pop pop                                  % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
-    2 index { Indent sub } if def pop                           % [/f] (word1)..[/f] (wordX)                        Account for indent if necessary
+    2 index Indent mul sub def pop                              % [/f] (word1)..[/f] (wordX)                        Account for indentation if necessary
 
     0                                                           % [/f] (word1)..[/f] (wordX) 0      Mark the end of the paragraph
 
@@ -179,7 +177,7 @@ PaperSize /a4 eq {
     % This part calculates the remaining space in the line      % /f (word1)../f (wordN) N width justify align indent
     4 -1 roll                                                   % /f (word1)../f (wordN) N justify align indent width
     Line pop pop                                                % /f (word1)../f (wordN) N justify align indent width maxWidth      Maximum line width
-    2 index { Indent sub } if                                   % /f (word1)../f (wordN) N justify align indent width maxWidth      Account for indent if necessary
+    2 index Indent mul sub                                      % /f (word1)../f (wordN) N justify align indent width maxWidth      Account for indentation if necessary
     exch sub                                                    % /f (word1)../f (wordN) N justify align indent balance             Amount of space remaining
     4 -2 roll exch                                              % /f (word1)../f (wordN) N indent balance align justify
 
@@ -214,7 +212,7 @@ PaperSize /a4 eq {
     } ifelse                                                    % /f (word1)../f (wordN) N indent x y
 
     % This part positions the pointer
-    3 1 roll exch { Indent add } if exch                        % /f (word1)../f (wordN) N x y                          Account for indentation if necessary
+    3 1 roll exch Indent mul add exch                           % /f (word1)../f (wordN) N x y                          Account for indentation if necessary
     moveto                                                      % /f (word1)../f (wordN) N                              Move pointer
 
     % This part prints each word
@@ -244,14 +242,14 @@ PaperSize /a4 eq {
 
     /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX)          No padding
 
-    /first true def                                             % /f (word1)..[/f] (wordX)          This is the first line
+    /indent 1 def                                               % /f (word1)..[/f] (wordX)          This is the first line, so indent once
     {
 
-        first CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
-        dup not 0 first 4 -1 roll                               % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
+        indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
+        dup not 0 indent 4 -1 roll                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
 
-        /first false def                                        % [/f] (wordN+1)..[/f] (wordX)      This isn't the first line
+        /indent 0 def                                           % [/f] (wordN+1)..[/f] (wordX)      This isn't the first line, so don't indent
 
     } loop
 
@@ -260,23 +258,24 @@ PaperSize /a4 eq {
 } def
 
 % Print a Paragraph with Alignment
-% BASE /f (word1) [/f] (word2)..[/f] (wordX) indent align -> BASE -
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) indent1 align -> BASE -
 %
-% Alignment is specified using an integer. 0 means left-align,
-% 1 means centre-align, and 2 means right-align.
+% Alignment is specified using an integer. 0 means left-align, 1
+% means centre-align, and 2 means right-align. Whether the first
+% line should be indented is specified using a boolean.
 /PrintParagraphAligned {
 
-    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) align        No padding
-    /align exch def                                             % /f (word1)..[/f] (wordX)              Set variable
+    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) indent1 align        No padding
+    /align exch def                                             % /f (word1)..[/f] (wordX) indent1              Set variable
 
-    /indent exch def                                            % /f (word1)..[/f] (wordX)          Indent the first line if necessary
+    /indent exch { 1 } if def                                   % /f (word1)..[/f] (wordX)          Indent the first line once if necessary
     {
 
         indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
         false align indent 4 -1 roll                            % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
 
-        /indent false def                                       % [/f] (wordN+1)..[/f] (wordX)      Don't indent subsequent lines
+        /indent 0 def                                           % [/f] (wordN+1)..[/f] (wordX)      Don't indent subsequent lines
 
     } loop
 
@@ -293,8 +292,8 @@ PaperSize /a4 eq {
 
     {
 
-        false CalcLine                                          % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
-        dup not 0 false 4 -1 roll                               % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
+        0 CalcLine                                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
+        dup not 0 0 4 -1 roll                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
 
     } loop
@@ -304,19 +303,24 @@ PaperSize /a4 eq {
 } def
 
 % Print a List Item
-% BASE /f (word1) [/f] (word2)..[/f] (wordX) index -> BASE -
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) (index) order -> BASE -
 /PrintListItem {
 
-    /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX)             No padding
+    /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX) (index) order       No padding
+    /indent exch def                                            % /f (word1) [/f] (word2)..[/f] (wordX) (index)             Times to indent for index
 
-    Line moveto pop                                             % /f (word1) [/f] (word2)..[/f] (wordX) index       Move pointer to current line
-    DefaultFontFace findfont FontHeight scalefont setfont       % /f (word1) [/f] (word2)..[/f] (wordX) index       Set default font
-    (  ) cvs show (.) show                                      % /f (word1) [/f] (word2)..[/f] (wordX)             Print index
+    Line exch indent Indent mul add exch                        % /f (word1) [/f] (word2)..[/f] (wordX) (index) width x y       Current line with necessary indentation
+    moveto pop                                                  % /f (word1) [/f] (word2)..[/f] (wordX) (index)                 Move pointer
+
+    DefaultFontFace findfont FontHeight scalefont setfont       % /f (word1) [/f] (word2)..[/f] (wordX) (index)             Set default font
+    show (.) show                                               % /f (word1) [/f] (word2)..[/f] (wordX)                     Print index
+
+    /indent indent 1 add def                                    % /f (word1) [/f] (word2)..[/f] (wordX)                     Indent once more past the index
 
     {
 
-        true CalcLine                                           % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
-        dup not 0 true 4 -1 roll                                % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
+        indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
+        dup not 0 indent 4 -1 roll                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
 
     } loop
@@ -397,17 +401,29 @@ PrintRule
 /Times-Roman (This) (is) (the) (first) (item) (in) (a) (list.)
 (It) (should) (be) (preceded) (by) (the) (number) (one,) (and) (every) (line) (should) (be) (indented.)
 
-1 PrintListItem
+(1) 0 PrintListItem
 
 /Times-Roman (This) (is) (the) (second) (item) (in) (a) (list.)
 (Lists) (like) (these) (are) (generally) (used) (in) (memorandums) (for) (brevity) (and) (ease) (in) (reading.)
 
-2 PrintListItem
+(2) 0 PrintListItem
+
+/Times-Roman (This) (is) (an) (item) (in) (a) (lower-order) (list.)
+
+(a) 1 PrintListItem
+
+/Times-Roman (Sublist) (items) (are) (generally) (preceded) (by) (lowercase) (letters.)
+
+(b) 1 PrintListItem
+
+/Times-Roman (They) (should) (also) (be) (indented) (further) (than) (higher-order) (items.)
+
+(c) 1 PrintListItem
 
 /Times-Roman (This) (is) (the) (third) (item) (in) (a) (list.)
 (Three) (is) (generally) (the) (minimum) (number) (of) (items) (in) (a) (list,) (as) (having) (fewer) (items) (will) (make) (the) (writing) (simple) (enough) (to) (be) (understood) (without) (the) (context) (of) (one.)
 
-3 PrintListItem
+(3) 0 PrintListItem
 
 /Times-Roman (This) (is) (a) /Times-Bold (block-quote.) /Times-Roman
 (The) (paragraph) (should) (be) (justified,) (and) (every) (line) (should) (be) (indented) (from) (both) (the) (left) (and) (the) (right,) (making) (the) (paragraph) (horizontally) (condensed.)
