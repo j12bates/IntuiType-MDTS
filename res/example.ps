@@ -3,21 +3,39 @@
 % Convert Inches to Points
 % in --> pt
 /in { 72 mul } def
+/mm { 2.83465 mul } def
 
-/PageWidth 8.5 in def
-/PageHeight 11 in def
+% Set Page Dimensions from Paper Size
+/PaperSize /letter def
 
+PaperSize /letter eq {
+    /PageWidth 8.5 in def
+    /PageHeight 11 in def
+} if
+
+PaperSize /a4 eq {
+    /PageWidth 210 mm def
+    /PageHeight 297 mm def
+} if
+
+<< /PageSize [ PageWidth PageHeight ] >> setpagedevice
+
+% Document Standards
 /MarginX 1 in def
 /MarginY 1 in def
 /Indent 0.5 in def
-/PaddingX 0 in def
 
 /DefaultFontFace /Times-Roman def
+
+% Section Parameters
 /FontHeight 12 def
 /Leading 0.15 def
 
 /ColumnPortions [ 1 1 ] def
 /Gutter 0.5 in def
+
+% Variables
+/PaddingX 0 in def
 
 /pageLine 0 def
 /pageColumn 0 def
@@ -25,10 +43,10 @@
 % TODO - Additional Formatting Things - Code Blocks etc.
 % TODO - Auto-Break a Word that's Too Long
 % TODO - Higher-Order Indentation (use integer as indent parameter)
+% TODO - Headers
+% TODO - Sections, Global Parameters (Font Size, Leading, Columns) can be Changed (calculate position by adding an offset to Y which is reset on new page)
 
-% TODO (maybe) - Space out Err throughout All Chars (single-word lines)
-% TODO (maybe) - Special Things for Dashes and other Word Separators
-% TODO (maybe) - Font Colour?
+% TODO (maybe) - Font Colour
 
 % TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
 
