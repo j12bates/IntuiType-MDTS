@@ -35,25 +35,22 @@ PaperSize /a4 eq {
 /ColumnPortions [ 1 1 ] def
 
 % Header Parameters
-/HeaderLeft { } def
-/HeaderCentre { } def
-/HeaderRight { } def
+/HeaderLeft { 0 0 } def
+/HeaderCentre { 0 0 } def
+/HeaderRight { 0 0 } def
 
 /HeaderFontHeight 12 def
 /HeaderLeading 0.15 def
 
 % Footer Parameters
-/FooterLeft { } def
-/FooterCentre { } def
-/FooterRight { } def
+/FooterLeft { 0 0 } def
+/FooterCentre { 0 0 } def
+/FooterRight { 0 0 } def
 
 /FooterFontHeight 12 def
-/HeaderLeading 0.15 def
+/FooterLeading 0.15 def
 
 % Variables
-/lineModeContent true def
-/lineModeFooter false def
-
 /PaddingX 0 in def
 
 /documentPage 1 def
@@ -76,7 +73,7 @@ PaperSize /a4 eq {
     PageWidth MarginX 2 mul sub                                     % available                     Total space between margins
     MarginX                                                         % available x                   X-value of left margin
 
-    lineModeContent                                                 % available x contentMode       If we're dealing with content, deal with columns and padding
+    pageLine type /nametype ne                                      % available x contentMode       If we're dealing with content, deal with columns and padding
     {
 
         % This part finds the width of each portion of column distribution
@@ -101,9 +98,21 @@ PaperSize /a4 eq {
     } if
 
     % This part finds the Y-value of the line
-    PageHeight MarginY sub pageLine                                 % width x top line              Top margin and line number
-    FontHeight Leading 1 add mul                                    % width x top line spacing      Spacing per line
-    mul FontHeight add sub                                          % width x y                     Pointer is at bottom of line
+    pageLine type /nametype ne                                      % width x special               Is this a special line?
+    {
+        PageHeight MarginY sub pageLine                             % width x top line              If not, top margin and line number
+        FontHeight Leading 1 add mul                                % width x top line spacing      Spacing per line
+        mul FontHeight add sub                                      % width x y                     Pointer is at bottom of line
+    } {
+        pageLine /header eq                                         % width x header                Is this the header?
+        {
+            PageHeight MarginY sub                                  % width x top                   If so, top margin
+            HeaderFontHeight HeaderLeading 1 add mul add            % width x y                     Go up one line
+        } {
+            MarginY                                                 % width x bottom                Otherwise, bottom margin
+            FooterFontHeight FooterLeading 1 add mul sub            % width x y                     Go down one line
+        } ifelse
+    } ifelse                                                        % width x y
 
 } def
 
@@ -133,10 +142,27 @@ PaperSize /a4 eq {
 % Advance to Next Page
 /NextPage {
 
+    showpage                                                        %                               Finish off that page and start a new one
+    PrintHeaderFooter                                               %                               Print Header/Footer
+
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
     /documentPage documentPage 1 add def                            %                               Next page
-    showpage                                                        %
+
+} def
+
+% Print Header/Footer
+/PrintHeaderFooter {
+
+    /pageLine /header def                                           %                               Header line
+    HeaderLeft false 0 0 PrintLine                                  %                               Print left-aligned part of header
+    HeaderCentre false 1 0 PrintLine                                %                               Print centre-aligned part of header
+    HeaderRight false 2 0 PrintLine                                 %                               Print right-aligned part of header
+
+    /pageLine /footer def                                           %                               Footer line
+    FooterLeft false 0 0 PrintLine                                  %                               Print left-aligned part of footer
+    FooterCentre false 1 0 PrintLine                                %                               Print centre-aligned part of footer
+    FooterRight false 2 0 PrintLine                                 %                               Print right-aligned part of footer
 
 } def
 
@@ -168,8 +194,8 @@ PaperSize /a4 eq {
 
         dup 0 eq { count 1 roll exit } if                       % ../f (pre) [(cur) OR /f]          If this is the end mark, replace it and exit
 
-        dup type /nametype eq {
-                                                                % (cur) [/f] (nxt)../f (pre) /f
+        dup type /nametype eq
+        {                                                       % (cur) [/f] (nxt)../f (pre) /f
             /curFontFace exch def                               % (cur) [/f] (nxt)../f (pre)        If this is a font name, set variable
             count -1 roll                                       % [/f] (nxt)../f (pre) (cur)        Bring up current word
         } if
@@ -385,6 +411,8 @@ PaperSize /a4 eq {
     NextLine                                                    %                                   Don't use this line
 
 } def
+
+PrintHeaderFooter
 
 /Times-Roman (The) (first) (line) (of) (this) (paragraph) (should) (be) /Times-Bold (indented,) /Times-Roman (meaning) (there) (is) (space) (between) (the) (left) (margin) (and) (the) (type,)
 (which) (in) (this) (case) (it) (should) (be) /Times-Italic (one) (inch) /Times-Roman (of) (space.)
