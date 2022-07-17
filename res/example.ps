@@ -35,17 +35,17 @@ PaperSize /a4 eq {
 /ColumnPortions [ 1 1 ] def
 
 % Header Parameters
-/HeaderLeft { 0 0 } def
-/HeaderCentre { 0 0 } def
-/HeaderRight { 0 0 } def
+/HeaderLeft { /Times-Roman (Header) } def
+/HeaderCentre { } def
+/HeaderRight { /Times-Roman (Sample Document) } def
 
 /HeaderFontHeight 12 def
 /HeaderLeading 0.15 def
 
 % Footer Parameters
-/FooterLeft { 0 0 } def
-/FooterCentre { 0 0 } def
-/FooterRight { 0 0 } def
+/FooterLeft { } def
+/FooterCentre { /Times-Roman documentPage ( ) cvs } def
+/FooterRight { } def
 
 /FooterFontHeight 12 def
 /FooterLeading 0.15 def
@@ -58,7 +58,6 @@ PaperSize /a4 eq {
 /pageLine 0 def
 
 % TODO - Auto-Break a Word that's Too Long
-% TODO - Headers
 % TODO - Sections, Global Parameters (Font Size, Leading, Columns) can be Changed (calculate position by adding an offset to Y which is reset on new page)
 
 % TODO (maybe) - Font Colour
@@ -110,7 +109,7 @@ PaperSize /a4 eq {
             HeaderFontHeight HeaderLeading 1 add mul add            % width x y                     Go up one line
         } {
             MarginY                                                 % width x bottom                Otherwise, bottom margin
-            FooterFontHeight FooterLeading 1 add mul sub            % width x y                     Go down one line
+            FooterFontHeight FooterLeading 2 add mul sub            % width x y                     Go down one line (pointer is at bottom of line)
         } ifelse
     } ifelse                                                        % width x y
 
@@ -143,23 +142,33 @@ PaperSize /a4 eq {
 /NextPage {
 
     showpage                                                        %                               Finish off that page and start a new one
-    NewPage                                                         %                               Set up new page
     /documentPage documentPage 1 add def                            %                               Increment page number
+    NewPage                                                         %                               Set up new page
 
 } def
 
 % Set Up New Page
 /NewPage {
 
+    /ignore count 1 sub def                                         %                               Ignore items in stack below this
+
     /pageLine /header def                                           %                               Header line
-    HeaderLeft false 0 0 PrintLine                                  %                               Print left-aligned part of header
-    HeaderCentre false 1 0 PrintLine                                %                               Print centre-aligned part of header
-    HeaderRight false 2 0 PrintLine                                 %                               Print right-aligned part of header
+
+    HeaderLeft count ignore sub 0 CalcLine
+    pop false 0 0 PrintLine                                         %                               Print left-aligned part of header
+    HeaderCentre count ignore sub 0 CalcLine
+    pop false 1 0 PrintLine                                         %                               Print centre-aligned part of header
+    HeaderRight count ignore sub 0 CalcLine
+    pop false 2 0 PrintLine                                         %                               Print right-aligned part of header
 
     /pageLine /footer def                                           %                               Footer line
-    FooterLeft false 0 0 PrintLine                                  %                               Print left-aligned part of footer
-    FooterCentre false 1 0 PrintLine                                %                               Print centre-aligned part of footer
-    FooterRight false 2 0 PrintLine                                 %                               Print right-aligned part of footer
+
+    FooterLeft count ignore sub 0 CalcLine
+    pop false 0 0 PrintLine                                         %                               Print left-aligned part of footer
+    FooterCentre count ignore sub 0 CalcLine
+    pop false 1 0 PrintLine                                         %                               Print centre-aligned part of footer
+    FooterRight count ignore sub 0 CalcLine
+    pop false 2 0 PrintLine                                         %                               Print right-aligned part of footer
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
