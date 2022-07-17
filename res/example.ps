@@ -143,16 +143,13 @@ PaperSize /a4 eq {
 /NextPage {
 
     showpage                                                        %                               Finish off that page and start a new one
-    PrintHeaderFooter                                               %                               Print Header/Footer
-
-    /pageLine 0 def                                                 %                               Reset line
-    /pageColumn 0 def                                               %                               Reset column
-    /documentPage documentPage 1 add def                            %                               Next page
+    NewPage                                                         %                               Set up new page
+    /documentPage documentPage 1 add def                            %                               Increment page number
 
 } def
 
-% Print Header/Footer
-/PrintHeaderFooter {
+% Set Up New Page
+/NewPage {
 
     /pageLine /header def                                           %                               Header line
     HeaderLeft false 0 0 PrintLine                                  %                               Print left-aligned part of header
@@ -164,61 +161,70 @@ PaperSize /a4 eq {
     FooterCentre false 1 0 PrintLine                                %                               Print centre-aligned part of footer
     FooterRight false 2 0 PrintLine                                 %                               Print right-aligned part of footer
 
+    /pageLine 0 def                                                 %                               Reset line
+    /pageColumn 0 def                                               %                               Reset column
+
 } def
 
 % Calculate a Line of Words
-% BASE [/f] (word1)..[/f] (wordX) indent --> BASE [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
+% /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent --> /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final
 %
-% The entire stack should be the remaining words in a paragraph,
-% starting at the base, with optional font names below each
-% word. Words that will fit in one line will be placed at the
-% top and a font name will be specified for each.
+% The stack should contain the remaining words in a paragraph,
+% starting from the base, with optional font names below each
+% word. This procedure will only manipulate the number of things
+% specified in the stack. Words that will fit in one line will
+% be placed at the top and a font name will be placed before
+% each.
 /CalcLine {
 
-                                                                % [/f] (word1)..[/f] (wordX) indent
-    /curLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent     If a word fits, the total width is here
-    /nxtLineWidth 0 def                                         % [/f] (word1)..[/f] (wordX) indent     Used to check if a word will fit with previous whitespace
+                                                                % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent
+    /curLineWidth 0 def                                         % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     If a word fits, the total width is here
+    /nxtLineWidth 0 def                                         % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     Used to check if a word will fit with previous whitespace
     /curLineWords 0 def
 
-    /maxLineWidth Line pop pop                                  % [/f] (word1)..[/f] (wordX) indent /v width        Maximum line width
-    2 index Indent mul sub def pop                              % [/f] (word1)..[/f] (wordX)                        Account for indentation if necessary
+    /maxLineWidth Line pop pop                                  % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent /v width        Maximum line width
+    2 index Indent mul sub def pop                              % /f (word1) [/f] (word2)..[/f] (wordX) maxItems                        Account for indentation if necessary
 
-    0                                                           % [/f] (word1)..[/f] (wordX) 0      Mark the end of the paragraph
+    /maxItems exch 1 add def                                    % /f (word1) [/f] (word2)..[/f] (wordX)         Stack item count
+
+    0                                                           % /f (word1) [/f] (word2)..[/f] (wordX) 0       Mark the end of the paragraph
 
     {
 
         % This part checks what's next, it may not be a word
         /final true def                                         % [/f] (cur)../f (pre)              If we exit, this is the final line
 
-        count -1 roll                                           % ../f (pre) [(cur) OR /f OR 0]     Bring up current word, next font name, or end mark
+        maxItems -1 roll                                        % ../f (pre) [(cur) OR /f OR 0]     Bring up current word, next font name, or end mark
 
-        dup 0 eq { count 1 roll exit } if                       % ../f (pre) [(cur) OR /f]          If this is the end mark, replace it and exit
+        dup 0 eq { maxItems 1 roll exit } if                    % ../f (pre) [(cur) OR /f]          If this is the end mark, replace it and exit
 
         dup type /nametype eq
         {                                                       % (cur) [/f] (nxt)../f (pre) /f
             /curFontFace exch def                               % (cur) [/f] (nxt)../f (pre)        If this is a font name, set variable
-            count -1 roll                                       % [/f] (nxt)../f (pre) (cur)        Bring up current word
+            /maxItems maxItems 1 sub def                        % [/f] (nxt)../f (pre) (cur)        Account for lost item
+            maxItems -1 roll                                    % [/f] (nxt)../f (pre) (cur)        Bring up current word
         } if
+
         curFontFace exch                                        % [/f] (nxt)../f (pre) /f (cur)     Bury current font for print routine
+        /maxItems maxItems 1 add def                            % [/f] (nxt)../f (pre) /f (cur)     Account for additional item
 
         % This part checks if the word will fit in the line
         /final false def                                        % [/f] (nxt)../f (cur)              If we exit, this isn't the final line
 
         curFontFace findfont FontHeight scalefont setfont       % [/f] (nxt)../f (cur)              Set word font
         dup stringwidth pop nxtLineWidth add                    % [/f] (nxt)../f (cur) width        Width of line including this word
-        dup maxLineWidth gt { pop count 2 roll exit } if        % [/f] (nxt)../f (cur) width        If word doesn't fit, stop here
+        dup maxLineWidth gt { pop maxItems 2 roll exit } if     % [/f] (nxt)../f (cur) width        If word doesn't fit, stop here
         /curLineWidth exch def                                  % [/f] (nxt)../f (cur)              Otherwise, add to width
         /curLineWords curLineWords 1 add def                    % [/f] (nxt)../f (cur)              Increment word counter
 
-        % This part checks if whitespace will fit in the line
+        % This part adds whitespace in case the next word also fits
         /nxtLineWidth ( ) stringwidth pop curLineWidth add def  % [/f] (nxt)../f (cur)              Width of line including this word with whitespace
-        nxtLineWidth maxLineWidth ge { exit } if                % [/f] (nxt)../f (cur)              If whitespace doesn't fit, stop here
 
     } loop
 
-                                                                % [/f] (wordN+1)..[/f] (wordX) 0 /f (word1)../f (wordN)
-    curLineWords 2 mul 1 add -1 roll pop                        % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN)
-    curLineWords curLineWidth final                             % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final
+                                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) 0 /f (word1)../f (wordN)
+    curLineWords 2 mul 1 add -1 roll pop                        % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN)
+    curLineWords curLineWidth final                             % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final
 
 } def
 
@@ -298,12 +304,12 @@ PaperSize /a4 eq {
     /indent 1 def                                               % /f (word1)..[/f] (wordX)          This is the first line, so indent once
     {
 
-        indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
-        dup not 0 indent 4 -1 roll                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
-        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
-        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
+        count indent CalcLine                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
+        dup not 0 indent 4 -1 roll                              % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
+        NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
 
-        /indent 0 def                                           % [/f] (wordN+1)..[/f] (wordX)      This isn't the first line, so don't indent
+        /indent 0 def                                           % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)     This isn't the first line, so don't indent
 
     } loop
 
@@ -326,12 +332,12 @@ PaperSize /a4 eq {
     /indent exch { 1 } { 0 } ifelse def                         % /f (word1)..[/f] (wordX)          Indent the first line once if necessary
     {
 
-        indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
-        false align indent 4 -1 roll                            % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
-        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
-        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
+        count indent CalcLine                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
+        false align indent 4 -1 roll                            % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
+        NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
 
-        /indent 0 def                                           % [/f] (wordN+1)..[/f] (wordX)      Don't indent subsequent lines
+        /indent 0 def                                           % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)     Don't indent subsequent lines
 
     } loop
 
@@ -349,10 +355,10 @@ PaperSize /a4 eq {
 
     {
 
-        0 CalcLine                                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
-        dup not 0 0 4 -1 roll                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
-        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
-        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
+        count 0 CalcLine                                        % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
+        dup not 0 0 4 -1 roll                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
+        NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
 
     } loop
 
@@ -378,10 +384,10 @@ PaperSize /a4 eq {
 
     {
 
-        indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
-        dup not 0 indent 4 -1 roll                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
-        { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
-        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
+        count indent CalcLine                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
+        dup not 0 indent 4 -1 roll                              % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
+        NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
 
     } loop
 
@@ -412,7 +418,7 @@ PaperSize /a4 eq {
 
 } def
 
-PrintHeaderFooter
+NewPage
 
 /Times-Roman (The) (first) (line) (of) (this) (paragraph) (should) (be) /Times-Bold (indented,) /Times-Roman (meaning) (there) (is) (space) (between) (the) (left) (margin) (and) (the) (type,)
 (which) (in) (this) (case) (it) (should) (be) /Times-Italic (one) (inch) /Times-Roman (of) (space.)
