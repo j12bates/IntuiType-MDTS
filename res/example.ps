@@ -24,6 +24,7 @@ PaperSize /a4 eq {
 /MarginX 1 in def
 /MarginY 1 in def
 /Indent 0.5 in def
+/Gutter 0.5 in def
 
 /DefaultFontFace /Times-Roman def
 
@@ -32,13 +33,32 @@ PaperSize /a4 eq {
 /Leading 0.15 def
 
 /ColumnPortions [ 1 1 ] def
-/Gutter 0.5 in def
+
+% Header Parameters
+/HeaderLeft { } def
+/HeaderCentre { } def
+/HeaderRight { } def
+
+/HeaderFontHeight 12 def
+/HeaderLeading 0.15 def
+
+% Footer Parameters
+/FooterLeft { } def
+/FooterCentre { } def
+/FooterRight { } def
+
+/FooterFontHeight 12 def
+/HeaderLeading 0.15 def
 
 % Variables
+/lineModeContent true def
+/lineModeFooter false def
+
 /PaddingX 0 in def
 
-/pageLine 0 def
+/documentPage 1 def
 /pageColumn 0 def
+/pageLine 0 def
 
 % TODO - Auto-Break a Word that's Too Long
 % TODO - Headers
@@ -52,24 +72,33 @@ PaperSize /a4 eq {
 % - --> width x y
 /Line {
 
-    % This part finds the width of each portion of column distribution
+    % This part finds the width and X-value of the line
     PageWidth MarginX 2 mul sub                                     % available                     Total space between margins
-    ColumnPortions length 1 sub Gutter mul sub                      % available                     Account for gutters
-    ColumnPortions aload pop                                        % available ptn..               All portion values
-    ColumnPortions length 1 sub { add } repeat                      % available ptns                Sum them up
-    div                                                             % ptnWidth                      Width of each portion
+    MarginX                                                         % available x                   X-value of left margin
 
-    % This part finds the width of the line
-    ColumnPortions pageColumn get                                   % ptnWidth curPtns              Portions in current column
-    1 index mul                                                     % ptnWidth width                Width of current column
-    PaddingX 2 mul sub                                              % ptnWidth width                Account for padding
+    lineModeContent                                                 % available x contentMode       If we're dealing with content, deal with columns and padding
+    {
 
-    % This part finds the X-value of the start of the line
-    0 0 1 pageColumn 1 sub { ColumnPortions exch get add } for      % ptnWidth width lPtns          Total portions in columns to the left
-    2 index mul pageColumn Gutter mul add MarginX add               % ptnWidth width x              X-value of column (add columns and gutters to the left)
-    PaddingX add                                                    % ptnWidth width x              Account for padding
+        % This part finds the width of each portion of column distribution
+        pop                                                         % available                     This isn't the X-value we need
+        ColumnPortions length 1 sub Gutter mul sub                  % available                     Account for gutters
+        ColumnPortions aload pop                                    % available ptn..               All portion values
+        ColumnPortions length 1 sub { add } repeat                  % available ptns                Sum them up
+        div                                                         % ptnWidth                      Width of each portion
 
-    3 -1 roll pop                                                   % width x
+        % This part finds the width of the line
+        ColumnPortions pageColumn get                               % ptnWidth curPtns              Portions in current column
+        1 index mul                                                 % ptnWidth width                Width of current column
+        PaddingX 2 mul sub                                          % ptnWidth width                Account for padding
+
+        % This part finds the X-value of the start of the line
+        0 0 1 pageColumn 1 sub { ColumnPortions exch get add } for  % ptnWidth width lPtns          Total portions in columns to the left
+        2 index mul pageColumn Gutter mul add MarginX add           % ptnWidth width x              X-value of column (add columns and gutters to the left)
+        PaddingX add                                                % ptnWidth width x              Account for padding
+
+        3 -1 roll pop                                               % width x
+
+    } if
 
     % This part finds the Y-value of the line
     PageHeight MarginY sub pageLine                                 % width x top line              Top margin and line number
@@ -106,7 +135,8 @@ PaperSize /a4 eq {
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
-    showpage                                                        %                               Next page
+    /documentPage documentPage 1 add def                            %                               Next page
+    showpage                                                        %
 
 } def
 
@@ -170,8 +200,7 @@ PaperSize /a4 eq {
 % /f (word1)../f (wordN) N width justify align indent --> -
 %
 % The stack should contain a font name for every word in the line.
-% All words will be printed onto the current line, and the line will
-% be advanced.
+% All words will be printed onto the current line.
 /PrintLine {
 
     % This part calculates the remaining space in the line      % /f (word1)../f (wordN) N width justify align indent
@@ -227,8 +256,6 @@ PaperSize /a4 eq {
 
     } for                                                       %                                   Loop through all words
 
-    NextLine                                                    %                                   Next line/column/page
-
 } def
 
 % Print a Paragraph
@@ -248,11 +275,13 @@ PaperSize /a4 eq {
         indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
         dup not 0 indent 4 -1 roll                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
+        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
 
         /indent 0 def                                           % [/f] (wordN+1)..[/f] (wordX)      This isn't the first line, so don't indent
 
     } loop
 
+    NextLine                                                    %                                   We didn't advance a line last time
     NextLine                                                    %                                   Skip a line between paragraphs
 
 } def
@@ -268,17 +297,19 @@ PaperSize /a4 eq {
     /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) indent1 align        No padding
     /align exch def                                             % /f (word1)..[/f] (wordX) indent1              Set variable
 
-    /indent exch { 1 } if def                                   % /f (word1)..[/f] (wordX)          Indent the first line once if necessary
+    /indent exch { 1 } { 0 } ifelse def                         % /f (word1)..[/f] (wordX)          Indent the first line once if necessary
     {
 
         indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
         false align indent 4 -1 roll                            % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
+        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
 
         /indent 0 def                                           % [/f] (wordN+1)..[/f] (wordX)      Don't indent subsequent lines
 
     } loop
 
+    NextLine                                                    %                                   We didn't advance a line last time
     NextLine                                                    %                                   Skip a line between paragraphs
 
 } def
@@ -295,9 +326,11 @@ PaperSize /a4 eq {
         0 CalcLine                                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
         dup not 0 0 4 -1 roll                                   % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
+        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
 
     } loop
 
+    NextLine                                                    %                                   We didn't advance a line last time
     NextLine                                                    %                                   Skip a line
 
 } def
@@ -322,9 +355,11 @@ PaperSize /a4 eq {
         indent CalcLine                                         % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width final                             Calculate a line
         dup not 0 indent 4 -1 roll                              % [/f] (wordN+1)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final        Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % [/f] (wordN+1)..[/f] (wordX)                                                                  Print line, exit if we're done
+        NextLine                                                % [/f] (wordN+1)..[/f] (wordX)                                                                  Next line/column/page
 
     } loop
 
+    NextLine                                                    %                                   We didn't advance a line last time
     NextLine                                                    %                                   Skip a line
 
 } def
