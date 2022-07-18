@@ -155,20 +155,20 @@ PaperSize /a4 eq {
     /pageLine /header def                                           %                               Header line
 
     HeaderLeft count ignore sub 0 CalcLine
-    pop false 0 0 PrintLine                                         %                               Print left-aligned part of header
+    pop false 0 0 PrintLine count ignore sub { pop } repeat         %                               Print left-aligned part of header
     HeaderCentre count ignore sub 0 CalcLine
-    pop false 1 0 PrintLine                                         %                               Print centre-aligned part of header
+    pop false 1 0 PrintLine count ignore sub { pop } repeat         %                               Print centre-aligned part of header
     HeaderRight count ignore sub 0 CalcLine
-    pop false 2 0 PrintLine                                         %                               Print right-aligned part of header
+    pop false 2 0 PrintLine count ignore sub { pop } repeat         %                               Print right-aligned part of header
 
     /pageLine /footer def                                           %                               Footer line
 
     FooterLeft count ignore sub 0 CalcLine
-    pop false 0 0 PrintLine                                         %                               Print left-aligned part of footer
+    pop false 0 0 PrintLine count ignore sub { pop } repeat         %                               Print left-aligned part of footer
     FooterCentre count ignore sub 0 CalcLine
-    pop false 1 0 PrintLine                                         %                               Print centre-aligned part of footer
+    pop false 1 0 PrintLine count ignore sub { pop } repeat         %                               Print centre-aligned part of footer
     FooterRight count ignore sub 0 CalcLine
-    pop false 2 0 PrintLine                                         %                               Print right-aligned part of footer
+    pop false 2 0 PrintLine count ignore sub { pop } repeat         %                               Print right-aligned part of footer
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
