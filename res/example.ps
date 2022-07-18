@@ -1,13 +1,13 @@
 %!PS-Adobe-2.0
 
-% Convert Inches to Points
-% in --> pt
+% Paper Size
+/PaperSize /letter def
+
+% Unit Conversions
 /in { 72 mul } def
 /mm { 2.83465 mul } def
 
 % Set Page Dimensions from Paper Size
-/PaperSize /letter def
-
 PaperSize /letter eq {
     /PageWidth 8.5 in def
     /PageHeight 11 in def
@@ -20,13 +20,12 @@ PaperSize /a4 eq {
 
 << /PageSize [ PageWidth PageHeight ] >> setpagedevice
 
+
 % Document Standards
 /MarginX 1 in def
 /MarginY 1 in def
 /Indent 0.5 in def
 /Gutter 0.5 in def
-
-/DefaultFontFace /Times-Roman def
 
 % Section Parameters
 /FontHeight 12 def
@@ -44,11 +43,12 @@ PaperSize /a4 eq {
 
 % Footer Parameters
 /FooterLeft { } def
-/FooterCentre { /Times-Roman documentPage ( ) cvs } def
+/FooterCentre { /Times-Roman documentPage (  ) cvs } def
 /FooterRight { } def
 
 /FooterFontHeight 12 def
 /FooterLeading 0.15 def
+
 
 % Variables
 /PaddingX 0 in def
@@ -57,12 +57,14 @@ PaperSize /a4 eq {
 /pageColumn 0 def
 /pageLine 0 def
 
+
 % TODO - Auto-Break a Word that's Too Long
 % TODO - Sections, Global Parameters (Font Size, Leading, Columns) can be Changed (calculate position by adding an offset to Y which is reset on new page)
 
 % TODO (maybe) - Font Colour
 
 % TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
+
 
 % Get Position and Width of Current Line
 % - --> width x y
@@ -377,19 +379,19 @@ PaperSize /a4 eq {
 } def
 
 % Print a List Item
-% BASE /f (word1) [/f] (word2)..[/f] (wordX) (index) order -> BASE -
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) /f (index) order -> BASE -
 /PrintListItem {
 
-    /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX) (index) order       No padding
-    /indent exch def                                            % /f (word1) [/f] (word2)..[/f] (wordX) (index)             Times to indent for index
+    /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX) /f (index) order        No padding
+    /indent exch def                                            % /f (word1) [/f] (word2)..[/f] (wordX) /f (index)              Times to indent for index
 
-    Line exch indent Indent mul add exch                        % /f (word1) [/f] (word2)..[/f] (wordX) (index) width x y       Current line with necessary indentation
-    moveto pop                                                  % /f (word1) [/f] (word2)..[/f] (wordX) (index)                 Move pointer
+    Line exch indent Indent mul add exch                        % /f (word1) [/f] (word2)..[/f] (wordX) /f (index) width x y        Current line with necessary indentation
+    moveto pop                                                  % /f (word1) [/f] (word2)..[/f] (wordX) /f (index)                  Move pointer
 
-    DefaultFontFace findfont FontHeight scalefont setfont       % /f (word1) [/f] (word2)..[/f] (wordX) (index)             Set default font
-    show (.) show                                               % /f (word1) [/f] (word2)..[/f] (wordX)                     Print index
+    exch findfont FontHeight scalefont setfont                  % /f (word1) [/f] (word2)..[/f] (wordX) (index)     Set index font
+    show (.) show                                               % /f (word1) [/f] (word2)..[/f] (wordX)             Print index
 
-    /indent indent 1 add def                                    % /f (word1) [/f] (word2)..[/f] (wordX)                     Indent once more past the index
+    /indent indent 1 add def                                    % /f (word1) [/f] (word2)..[/f] (wordX)             Indent once more past the index
 
     {
 
@@ -479,29 +481,29 @@ PrintRule
 /Times-Roman (This) (is) (the) (first) (item) (in) (a) (list.)
 (It) (should) (be) (preceded) (by) (the) (number) (one,) (and) (every) (line) (should) (be) (indented.)
 
-(1) 0 PrintListItem
+/Times-Roman (1) 0 PrintListItem
 
 /Times-Roman (This) (is) (the) (second) (item) (in) (a) (list.)
 (Lists) (like) (these) (are) (generally) (used) (in) (memorandums) (for) (brevity) (and) (ease) (in) (reading.)
 
-(2) 0 PrintListItem
+/Times-Roman (2) 0 PrintListItem
 
 /Times-Roman (This) (is) (an) (item) (in) (a) (lower-order) (list.)
 
-(a) 1 PrintListItem
+/Times-Roman (a) 1 PrintListItem
 
 /Times-Roman (Sublist) (items) (are) (generally) (preceded) (by) (lowercase) (letters.)
 
-(b) 1 PrintListItem
+/Times-Roman (b) 1 PrintListItem
 
 /Times-Roman (They) (should) (also) (be) (indented) (further) (than) (higher-order) (items.)
 
-(c) 1 PrintListItem
+/Times-Roman (c) 1 PrintListItem
 
 /Times-Roman (This) (is) (the) (third) (item) (in) (a) (list.)
 (Three) (is) (generally) (the) (minimum) (number) (of) (items) (in) (a) (list,) (as) (having) (fewer) (items) (will) (make) (the) (writing) (simple) (enough) (to) (be) (understood) (without) (the) (context) (of) (one.)
 
-(3) 0 PrintListItem
+/Times-Roman (3) 0 PrintListItem
 
 /Times-Roman (This) (is) (a) /Times-Bold (block-quote.) /Times-Roman
 (The) (paragraph) (should) (be) (justified,) (and) (every) (line) (should) (be) (indented) (from) (both) (the) (left) (and) (the) (right,) (making) (the) (paragraph) (horizontally) (condensed.)
