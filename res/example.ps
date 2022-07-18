@@ -1,4 +1,4 @@
-%!PS-Adobe-2.0
+%!PS-Adobe-3.0
 
 % Paper Size
 /PaperSize /letter def
@@ -36,7 +36,7 @@ PaperSize /a4 eq {
 % Header Parameters
 /HeaderLeft { /Times-Roman (Header) } def
 /HeaderCentre { } def
-/HeaderRight { /Times-Roman (Sample Document) } def
+/HeaderRight { /Times-Roman (Sample) (Document) } def
 
 /HeaderFontHeight 12 def
 /HeaderLeading 0.15 def
@@ -52,6 +52,7 @@ PaperSize /a4 eq {
 
 % Variables
 /PaddingX 0 in def
+/SectionOffset 0 in def
 
 /documentPage 1 def
 /pageColumn 0 def
@@ -101,17 +102,17 @@ PaperSize /a4 eq {
     % This part finds the Y-value of the line
     pageLine type /nametype ne                                      % width x special               Is this a special line?
     {
-        PageHeight MarginY sub pageLine                             % width x top line              If not, top margin and line number
+        PageHeight MarginY SectionOffset add sub pageLine           % width x top line              If not, top margin/top of section and line number
         FontHeight Leading 1 add mul                                % width x top line spacing      Spacing per line
         mul FontHeight add sub                                      % width x y                     Pointer is at bottom of line
     } {
         pageLine /header eq                                         % width x header                Is this the header?
         {
             PageHeight MarginY sub                                  % width x top                   If so, top margin
-            HeaderFontHeight HeaderLeading 1 add mul add            % width x y                     Go up one line
+            FontHeight Leading 1 add mul add                        % width x y                     Go up one line
         } {
             MarginY                                                 % width x bottom                Otherwise, bottom margin
-            FooterFontHeight FooterLeading 2 add mul sub            % width x y                     Go down one line (pointer is at bottom of line)
+            FontHeight Leading 2 add mul sub                        % width x y                     Go down one line (pointer is at bottom of line)
         } ifelse
     } ifelse                                                        % width x y
 
@@ -152,9 +153,15 @@ PaperSize /a4 eq {
 % Set Up New Page
 /NewPage {
 
-    /ignore count 1 sub def                                         %                               Ignore items in stack below this
+    count /ignore exch def                                          %                               Ignore items in stack below this
+
+    /sectionFontHeight FontHeight def                               %                               Preserve section parameters
+    /sectionLeading Leading def                                     %
 
     /pageLine /header def                                           %                               Header line
+
+    /FontHeight HeaderFontHeight def                                %                               Use header parameters
+    /Leading HeaderLeading def                                      %
 
     HeaderLeft count ignore sub 0 CalcLine
     pop false 0 0 PrintLine count ignore sub { pop } repeat         %                               Print left-aligned part of header
@@ -165,12 +172,42 @@ PaperSize /a4 eq {
 
     /pageLine /footer def                                           %                               Footer line
 
+    /FontHeight FooterFontHeight def                                %                               Use header parameters
+    /Leading HeaderLeading def                                      %
+
     FooterLeft count ignore sub 0 CalcLine
     pop false 0 0 PrintLine count ignore sub { pop } repeat         %                               Print left-aligned part of footer
     FooterCentre count ignore sub 0 CalcLine
     pop false 1 0 PrintLine count ignore sub { pop } repeat         %                               Print centre-aligned part of footer
     FooterRight count ignore sub 0 CalcLine
     pop false 2 0 PrintLine count ignore sub { pop } repeat         %                               Print right-aligned part of footer
+
+    /FontHeight sectionFontHeight def                               %                               Restore section parameters
+    /Leading sectionLeading def                                     %
+
+    /pageLine 0 def                                                 %                               Reset line
+    /pageColumn 0 def                                               %                               Reset column
+
+    /SectionOffset 0 def                                            %                               Reset section offset
+
+} def
+
+% Set Up New Section
+% FontHeight Leading ColumnPortions --> -
+/NewSection {
+
+    /ColumnPortions exch def                                        % FontHeight Leading            We can set this parameter as it doesn't affect Y-value
+
+    pageColumn 0 eq                                                 % FontHeight Leading multiColumn        Have we used only one column on this page?
+    {
+        Line FontHeight add PageHeight MarginY sub exch sub         % FontHeight Leading width x y          If so, calculate offset from the top of this line
+        /SectionOffset exch def pop pop                             % FontHeight Leading                    We can start the section where we are
+    } {
+        NextPage /SectionOffset 0 def                               % FontHeight Leading                    Otherwise, we must start the section on the next page
+    } ifelse
+
+    /Leading exch def                                               % FontHeight                    Set section parameters
+    /FontHeight exch def                                            %
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
@@ -420,7 +457,7 @@ PaperSize /a4 eq {
 
     gsave                                                       %                                   Save Graphics Context
 
-    0.5 setgray 2 setlinewidth 2 setlinecap                     %                                   Grey, 2 pt line, square cap
+    0.5 setgray 1 setlinewidth 2 setlinecap                     %                                   Grey, 1 pt line, square cap
     stroke                                                      %                                   Draw
 
     grestore                                                    %                                   Restore Graphics Context
@@ -430,6 +467,14 @@ PaperSize /a4 eq {
 } def
 
 NewPage
+
+24 0.15 [ 1 ] NewSection
+
+/Palatino-Roman (Example) (Document)
+
+false 1 PrintParagraphAligned
+
+12 0.15 [ 1 1 ] NewSection
 
 /Times-Roman (The) (first) (line) (of) (this) (paragraph) (should) (be) /Times-Bold (indented,) /Times-Roman (meaning) (there) (is) (space) (between) (the) (left) (margin) (and) (the) (type,)
 (which) (in) (this) (case) (it) (should) (be) /Times-Italic (one) (inch) /Times-Roman (of) (space.)
@@ -476,7 +521,7 @@ PrintRule
 
 PrintParagraph
 
-PrintRule
+14 0.5 [ 1 ] NewSection
 
 /Times-Roman (This) (is) (the) (first) (item) (in) (a) (list.)
 (It) (should) (be) (preceded) (by) (the) (number) (one,) (and) (every) (line) (should) (be) (indented.)
@@ -512,6 +557,8 @@ PrintRule
 PrintBlockQuote
 
 PrintRule
+
+14 1 [ 1 ] NewSection
 
 /Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (this) (page,) (so) (it) (should) (overflow) (into) (another) (one.)
 (If) (you're) (viewing) (this) (in) (a) (document) (reader) (or) (previewer,) (Evince) (for) (instance,)
