@@ -31,19 +31,19 @@ PaperSize /a4 eq {
 /FontHeight 12 def
 /Leading 0.15 def
 
-/ColumnPortions [ 1 1 ] def
+/ColumnPortions [ 1 ] def
 
 % Header Parameters
-/HeaderLeft { /Times-Roman (Header) } def
+/HeaderLeft { } def
 /HeaderCentre { } def
-/HeaderRight { /Times-Roman (Sample) (Document) } def
+/HeaderRight { } def
 
 /HeaderFontHeight 12 def
 /HeaderLeading 0.15 def
 
 % Footer Parameters
 /FooterLeft { } def
-/FooterCentre { /Times-Roman documentPage (  ) cvs } def
+/FooterCentre { } def
 /FooterRight { } def
 
 /FooterFontHeight 12 def
@@ -60,7 +60,6 @@ PaperSize /a4 eq {
 
 
 % TODO - Auto-Break a Word that's Too Long
-% TODO - Sections, Global Parameters (Font Size, Leading, Columns) can be Changed (calculate position by adding an offset to Y which is reset on new page)
 
 % TODO (maybe) - Font Colour
 
@@ -211,6 +210,32 @@ PaperSize /a4 eq {
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
+
+} def
+
+% Change Header
+% { procLeft } { procCentre } { procRight } FontHeight Leading --> -
+/NewHeader {
+
+    /HeaderLeading exch def                                         % { procLeft } { procCentre } { procRight } FontHeight      Set header parameters
+    /HeaderFontHeight exch def                                      % { procLeft } { procCentre } { procRight }
+
+    /HeaderRight exch def                                           % { procLeft } { procCentre }       Set header item routines
+    /HeaderCentre exch def                                          % { procLeft }
+    /HeaderLeft exch def                                            %
+
+} def
+
+% Change Footer
+% { procLeft } { procCentre } { procRight } FontHeight Leading --> -
+/NewFooter {
+
+    /FooterLeading exch def                                         % { procLeft } { procCentre } { procRight } FontHeight      Set footer parameters
+    /FooterFontHeight exch def                                      % { procLeft } { procCentre } { procRight }
+
+    /FooterRight exch def                                           % { procLeft } { procCentre }       Set footer item routines
+    /FooterCentre exch def                                          % { procLeft }
+    /FooterLeft exch def                                            %
 
 } def
 
@@ -466,6 +491,9 @@ PaperSize /a4 eq {
 
 } def
 
+{ } { } { } 12 0.15 NewHeader
+{ } { /Times-Roman documentPage (  ) cvs } { } 12 0.15 NewFooter
+
 NewPage
 
 24 0.15 [ 1 ] NewSection
@@ -473,6 +501,8 @@ NewPage
 /Palatino-Roman (Example) (Document)
 
 false 1 PrintParagraphAligned
+
+{ /Times-Roman (Header) } { } { /Times-Roman (Sample) (Document) } 12 0.15 NewHeader
 
 12 0.15 [ 1 1 ] NewSection
 
