@@ -59,18 +59,13 @@ PaperSize /a4 eq {
 /pageLine 0 def
 
 
-% TODO - Auto-Break a Word that's Too Long
-
-% TODO (maybe) - Font Colour
-
-% TODO - Make a Program to Generate this Document from Plaintext (maybe keep in res/ but no example, use fancy comments)
+% TODO - Make a Program to Generate this Document from Plaintext
 
 
 % Get Position and Width of Current Line
 % - --> width x y
 /Line {
 
-    % This part finds the width and X-value of the line
     PageWidth MarginX 2 mul sub                                     % available                     Total space between margins
     MarginX                                                         % available x                   X-value of left margin
 
@@ -96,15 +91,14 @@ PaperSize /a4 eq {
 
         3 -1 roll pop                                               % width x
 
-    } if
-
-    % This part finds the Y-value of the line
-    pageLine type /nametype ne                                      % width x special               Is this a special line?
-    {
+        % This part finds the Y-value of the line
         PageHeight MarginY SectionOffset add sub pageLine           % width x top line              If not, top margin/top of section and line number
         FontHeight Leading 1 add mul                                % width x top line spacing      Spacing per line
         mul FontHeight add sub                                      % width x y                     Pointer is at bottom of line
+
     } {
+
+        % This part finds the Y-value of the header/footer line
         pageLine /header eq                                         % width x header                Is this the header?
         {
             PageHeight MarginY sub                                  % width x top                   If so, top margin
@@ -113,6 +107,7 @@ PaperSize /a4 eq {
             MarginY                                                 % width x bottom                Otherwise, bottom margin
             FontHeight Leading 2 add mul sub                        % width x y                     Go down one line (pointer is at bottom of line)
         } ifelse
+
     } ifelse                                                        % width x y
 
 } def
@@ -551,7 +546,7 @@ PrintRule
 
 PrintParagraph
 
-14 0.5 [ 1 ] NewSection
+12 0.15 [ 1 ] NewSection
 
 /Times-Roman (This) (is) (the) (first) (item) (in) (a) (list.)
 (It) (should) (be) (preceded) (by) (the) (number) (one,) (and) (every) (line) (should) (be) (indented.)
@@ -587,8 +582,6 @@ PrintParagraph
 PrintBlockQuote
 
 PrintRule
-
-14 1 [ 1 ] NewSection
 
 /Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (this) (page,) (so) (it) (should) (overflow) (into) (another) (one.)
 (If) (you're) (viewing) (this) (in) (a) (document) (reader) (or) (previewer,) (Evince) (for) (instance,)
