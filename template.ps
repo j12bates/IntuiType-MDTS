@@ -59,9 +59,6 @@ PaperSize /a4 eq {
 /pageLine 0 def
 
 
-% TODO - Make a Program to Generate this Document from Plaintext
-
-
 % Get Position and Width of Current Line
 % - --> width x y
 /Line {
@@ -231,6 +228,20 @@ PaperSize /a4 eq {
     /FooterRight exch def                                           % { procLeft } { procCentre }       Set footer item routines
     /FooterCentre exch def                                          % { procLeft }
     /FooterLeft exch def                                            %
+
+} def
+
+% Begin Document
+/Begin {
+
+    NewPage
+
+} def
+
+% End Document
+/End {
+
+    showpage
 
 } def
 
@@ -485,111 +496,3 @@ PaperSize /a4 eq {
     NextLine                                                    %                                   Don't use this line
 
 } def
-
-{ } { } { } 12 0.15 NewHeader
-{ } { /Times-Roman documentPage (  ) cvs } { } 12 0.15 NewFooter
-
-NewPage
-
-24 0.15 [ 1 ] NewSection
-
-/Palatino-Roman (Example) (Document)
-
-false 1 PrintParagraphAligned
-
-{ /Times-Roman (Header) } { } { /Times-Roman (Sample) (Document) } 12 0.15 NewHeader
-
-12 0.15 [ 1 1 ] NewSection
-
-/Times-Roman (The) (first) (line) (of) (this) (paragraph) (should) (be) /Times-Bold (indented,) /Times-Roman (meaning) (there) (is) (space) (between) (the) (left) (margin) (and) (the) (type,)
-(which) (in) (this) (case) (it) (should) (be) /Times-Italic (one) (inch) /Times-Roman (of) (space.)
-(This) (paragraph) (should) (be) /Times-Bold (justified,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (is) (flush) (with) (the) (left) (margin,) (and) (the) (right) (side) (is) (flush) (with) (the) (right) (margin,)
-(except) (the) (final) (line,) (unless) (it) (just) (happens) (to) (be) (the) (right) (length.)
-(There) (should) (also) (be) /Times-Bold (leading,) /Times-Roman (or) (space) (between) (each) (line,) (and) (in) (this) (case) (it) (should) (be) /Times-Italic (fifteen) (percent) /Times-Roman (of) (the) (font) (height.)
-
-PrintParagraph
-
-/Times-Roman (Here) (is) (another) (paragraph.)
-(There) (should) (be) (one) (line's) (worth) (of) (space) (between) (this) (and) (the) (previous) (paragraph.)
-(Paragraph) (spacing) (is) (used) (in) (addition) (to) (indentation) (to) (emphasize) (the) (change) (in) (subject) (matter) (between) (paragraphs.)
-
-PrintParagraph
-
-PrintRule
-
-/Times-Roman (This) (paragraph) (should) (be) /Times-Bold (left-aligned,) /Times-Roman (meaning) (the) (left) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (left) (margin,) (and) (nothing) (else.)
-(This) (means) (that) (the) (right) (side) (of) (the) (paragraph) (is) (uneven,) (or) /Times-Bold (ragged.) /Times-Roman
-(This) (is) (how) (one) (typically) (writes) (a) (paragraph,) (and) (how) (most) (style) (guides) (suggest) (a) (paragraph) (be) (typeset.)
-
-true 0 PrintParagraphAligned
-
-/Times-Roman (This) (paragraph) (should) (be) /Times-Bold (right-aligned.) /Times-Roman
-(The) (right) (side) (of) (the) (paragraph) (is) (flush) (with) (the) (right) (margin,) (and) (the) (left) (side) (is) (ragged.)
-(Because) (of) (the) (latter) (detail,) (and) (since) (it) (wouldn't) (be) (consistent,) (the) (first) (line) (of) (this) (paragraph) (is) (not) (indented.)
-(Paragraphs) (typically) (are) (not) (aligned) (this) (way) (as) (it) (makes) (it) (harder) (to) (start) (reading) (the) (next) (line.)
-
-false 2 PrintParagraphAligned
-
-/Times-Roman (This) (paragraph) (should) (be) /Times-Bold (centre-aligned,) /Times-Roman (meaning) (each) (line) (is) (horizontally) (centred) (on) (the) (page.)
-(Both) (sides) (of) (the) (paragraph) (are) (ragged.)
-(This) (is) (used) (sometimes) (for) (headings) (and) (titles,) (and) (not) (for) (paragraphs.)
-
-false 1 PrintParagraphAligned
-
-PrintRule
-
-/Times-Roman (This) (paragraph) (should) (overflow) (into) (the) (right-hand) (column.)
-(Separating) (the) (columns) (should) (be) (a) /Times-Bold (gutter,) /Times-Roman (which) (is) (a) (bit) (of) (horizontal) (spacing,)
-(and) (in) (this) (case) (it) (should) (be) /Times-Italic (half) (an) (inch) /Times-Roman (wide.)
-(Sometimes) (you) (will) (see) (lines) (separating) (columns) (instead,) (and) (those) (are) (called) /Times-Bold (rules.) /Times-Roman
-(In) (fact,) (a) (horizontal) (rule) (should) (be) (between) (this) (paragraph) (and) (the) (previous) (one.)
-
-PrintParagraph
-
-12 0.15 [ 1 ] NewSection
-
-/Times-Roman (This) (is) (the) (first) (item) (in) (a) (list.)
-(It) (should) (be) (preceded) (by) (the) (number) (one,) (and) (every) (line) (should) (be) (indented.)
-
-/Times-Roman (1) 0 PrintListItem
-
-/Times-Roman (This) (is) (the) (second) (item) (in) (a) (list.)
-(Lists) (like) (these) (are) (generally) (used) (in) (memorandums) (for) (brevity) (and) (ease) (in) (reading.)
-
-/Times-Roman (2) 0 PrintListItem
-
-/Times-Roman (This) (is) (an) (item) (in) (a) (lower-order) (list.)
-
-/Times-Roman (a) 1 PrintListItem
-
-/Times-Roman (Sublist) (items) (are) (generally) (preceded) (by) (lowercase) (letters.)
-
-/Times-Roman (b) 1 PrintListItem
-
-/Times-Roman (They) (should) (also) (be) (indented) (further) (than) (higher-order) (items.)
-
-/Times-Roman (c) 1 PrintListItem
-
-/Times-Roman (This) (is) (the) (third) (item) (in) (a) (list.)
-(Three) (is) (generally) (the) (minimum) (number) (of) (items) (in) (a) (list,) (as) (having) (fewer) (items) (will) (make) (the) (writing) (simple) (enough) (to) (be) (understood) (without) (the) (context) (of) (one.)
-
-/Times-Roman (3) 0 PrintListItem
-
-/Times-Roman (This) (is) (a) /Times-Bold (block-quote.) /Times-Roman
-(The) (paragraph) (should) (be) (justified,) (and) (every) (line) (should) (be) (indented) (from) (both) (the) (left) (and) (the) (right,) (making) (the) (paragraph) (horizontally) (condensed.)
-(Block-quotes) (are) (generally) (used) (when) (a) (quote) (or) (excerpt) (is) (four) (lines) (or) (more.)
-
-PrintBlockQuote
-
-PrintRule
-
-/Times-Roman (This) (paragraph) (is) (too) (long) (to) (be) (kept) (on) (this) (page,) (so) (it) (should) (overflow) (into) (another) (one.)
-(If) (you're) (viewing) (this) (in) (a) (document) (reader) (or) (previewer,) (Evince) (for) (instance,)
-(you) (may) (notice) (that) (there) (is) (only) (one) (page,) (and) (that) (this) (paragraph) (starts) (rather) (abruptly,) (without) (indentation.)
-(This) (is) (because) (those) (programs) (are) (expecting) (special) (comments) (with) (the) (page) (count) (and) (numbering.)
-(Programs) (like) (GhostScript,) (however,) (render) (this) (document) (perfectly) (fine.)
-(Also,) (utilities) (like) (PS2PDF) (will) (convert) (this) (document) (to) (PDF,) (and) (document) (readers) (will) (render) (it) (well.)
-
-PrintParagraph
-
-showpage
