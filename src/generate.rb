@@ -36,8 +36,8 @@ source.each do |line|
 
 # Loop Through Words
     words.each do |word|
-        word.gsub("(", "\\(")
-        word.gsub(")", "\\)")
+        word = word.gsub("(", "\\(")
+        word = word.gsub(")", "\\)")
         print "(" + word + ") "
     end
 

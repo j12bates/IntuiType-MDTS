@@ -4,3 +4,5 @@ Each paragraph should be justified, and the first line of each paragraph should 
 
 Here is a second paragraph.
 In the plaintext source, line breaks can be placed wherever, but an empty line indicates the end of a paragraph and the beginning of the next.
+Since parentheses have meaning in PostScript, the program should escape any parentheses in the source (assuming this was implemented correctly).
+Goodness me!
