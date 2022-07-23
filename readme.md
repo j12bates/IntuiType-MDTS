@@ -1,12 +1,12 @@
-# Intuitive Arrangement
-A Lightweight Document Formatting Tool for Typesetting Documents from Largely Plaintext Source
+# IntuiType -- Markdown Typesetter
+A Lightweight Document Formatting Tool for Typesetting Documents from Markdown Source
 
 ---
 
 ## Source Files
 A source file contains all the text to be included in the document.
-Single line breaks are ignored. A double line break (creating a blank line) ends the current paragraph and starts a new one.
-An example source incorporating most features can be found in `example.txt`.
+It it written using many of the conventions used by markdown.
+An example source incorporating supported features can be found in `example.md`.
 
 ## Installation
 Install by copying the files in `src/` to a directory in `/opt/` or your preferred directory for installing software.
