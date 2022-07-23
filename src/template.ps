@@ -185,11 +185,15 @@ PaperSize /a4 eq {
 
 % Set Up New Section
 % FontHeight Leading ColumnPortions --> -
+%
+% Set ColumnPortions to zero to preserve columns between
+% sections
 /NewSection {
 
-    /ColumnPortions exch def                                        % FontHeight Leading            We can set this parameter as it doesn't affect Y-value
+    dup 0 eq /preserveColumns exch def                              % FontHeight Leading ColumnPortions     Keep track of whether the columns should be preserved
+    preserveColumns { pop } { /ColumnPortions exch def } ifelse     % FontHeight Leading                    We can set this parameter as it doesn't affect Y-value
 
-    pageColumn 0 eq                                                 % FontHeight Leading multiColumn        Have we used only one column on this page?
+    pageColumn 0 eq preserveColumns or                              % FontHeight Leading changeColumns      Have we either used only one column or are using the same columns?
     {
         Line FontHeight add PageHeight MarginY sub exch sub         % FontHeight Leading width x y          If so, calculate offset from the top of this line
         /SectionOffset exch def pop pop                             % FontHeight Leading                    We can start the section where we are
@@ -201,7 +205,7 @@ PaperSize /a4 eq {
     /FontHeight exch def                                            %
 
     /pageLine 0 def                                                 %                               Reset line
-    /pageColumn 0 def                                               %                               Reset column
+    preserveColumns not { /pageColumn 0 def } if                    %                               Reset column if necessary
 
 } def
 
