@@ -43,21 +43,6 @@ puts
 # Source File
 source = File.open(ARGV[0], "r")
 
-# Font Faces
-@font_names = ["Times-Roman", "Times-Italic", "Times-Bold", "Times-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"]
-
-@italic = false
-@bold = false
-@mono = false
-
-def get_font()
-    return @font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
-end
-
-def place_font_name()
-    print "/" + get_font + " "
-end
-
 # Current Block Type
 @block = 0
 
@@ -69,7 +54,7 @@ def check_block(word)
         if @block != :block_quote
             end_block
             @block = :block_quote
-            place_font_name
+            print font_name
         end
 
         return word[1, -1].to_s     # Remove the angle bracket
@@ -87,7 +72,7 @@ def check_block(word)
         if @block != :paragraph
             end_block
             @block = :paragraph
-            place_font_name
+            print font_name
         end
 
         return word                 # Just use the word
@@ -105,6 +90,80 @@ def end_block()
     end
 
     @block = 0
+end
+
+# Font Faces
+@font_names = ["Times-Roman", "Times-Italic", "Times-Bold", "Times-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"]
+
+@italic = false
+@bold = false
+@mono = false
+
+# Get Font Name
+def font_name()
+    name = @font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
+    return "/" + name + " "
+end
+
+# Update Font if Specified (Front or Back) and Remove Chars
+def update_font(word, front)
+
+    font_changed = false
+
+    # Check until we find a normal char
+    i = front ? 0 : -1
+    while word.length != 0
+        case word[i]
+
+            # Italic
+            when "_"
+                word.slice!(i)
+                @italic = !@italic
+
+            # Italic, or maybe Bold
+            when "*"
+                word.slice!(i)
+                if word[i] == "*"
+                    word.slice!(i)
+                    @bold = !@bold
+                else
+                    @italic = !@italic
+                end
+
+            # Monospace
+            when "`"
+                word.slice!(i)
+                @mono = !@mono
+
+            # Normal char
+            else
+                break
+
+        end
+
+        font_changed = true
+    end
+
+    # Only return a font name if we should print it
+    return font_changed ? font_name : ""
+
+end
+
+# Place a Word and any Font Changes
+def place_word(word)
+
+    # Escape Characters
+    word = word.gsub("\\", "\\\\")
+    word = word.gsub("(", "\\(")
+    word = word.gsub(")", "\\)")
+
+    # Font Changes
+    cur_font = update_font(word, true)
+    next_font = update_font(word, false)
+
+    # Echo Word as String with any Font Names
+    print cur_font + "(" + word + ") " + next_font
+
 end
 
 # Begin Document
@@ -126,13 +185,9 @@ source.each do |line|
     # Loop Through Words
     words.each do |word|
 
-        # Format as a string, escape any special chars
+        # Format as a string
         if word.length != 0
-            word = word.gsub("\\", "\\\\")
-            word = word.gsub("(", "\\(")
-            word = word.gsub(")", "\\)")
-
-            print "(" + word + ") "
+            place_word(word)
         end
 
     end
