@@ -9,6 +9,8 @@ Here is another paragraph.
 There should be one line's worth of space between this and the previous paragraph.
 Paragraph spacing is used in addition to indentation to emphasize the change in subject matter between paragraphs.
 
+---
+
 > This is a block-quote.
 > The paragraph should be justified, and every line should be indented from both the left and the right, making the paragraph appear horizontally condensed.
 > Block-quotes are generally used when a quote or excerpt is four lines or more.

@@ -74,6 +74,14 @@ def check_block(word)
 
         return word[1, -1].to_s     # Remove the angle bracket
 
+    # Rule
+    elsif word == "---"
+        if @block == 0
+            puts "PrintRule"
+        end
+
+        return ""
+
     # Paragraph
     else
         if @block != :paragraph
