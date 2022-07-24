@@ -27,52 +27,110 @@ puts "%     ps2pdf FILENAME.ps FILENAME.pdf"
 puts "% Direct PDF output has not yet been implemented."
 puts
 
+# Page Size
+paper_size = "letter"
+puts "/PaperSize /" + paper_size + " def"
+
 # PostScript Template
 ps_template = File.open(File.join(__dir__, "template.ps"), "r")
 ps_template.each do |line|
-    print line.split("%")[0].lstrip.rstrip + " "
+    line = line.split("%")[0].lstrip.rstrip
+    print line
+    if line.length != 0 then print " " end
 end
 puts
 
 # Source File
 source = File.open(ARGV[0], "r")
 
-# Format Options
-@font_name = "Times-Roman"
+# Font Faces
+@font_names = ["Times-Roman", "Times-Italic", "Times-Bold", "Times-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"]
 
-# Functions for Beginning/Ending Paragraphs
-def paragraph_begin()
-    puts "/" + @font_name + " "
+@italic = false
+@bold = false
+@mono = false
+
+def get_font()
+    return @font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
 end
 
-def paragraph_end()
-    puts "PrintParagraph"
+def place_font_name()
+    print "/" + get_font + " "
+end
+
+# Current Block Type
+@block = 0
+
+# Check First Word to see if we need to Start a New Block
+def check_block(word)
+
+    # Blockquote
+    if word[0] == ">"
+        if @block != :block_quote
+            end_block
+            @block = :block_quote
+            place_font_name
+        end
+
+        return word[1, -1].to_s     # Remove the angle bracket
+
+    # Paragraph
+    else
+        if @block != :paragraph
+            end_block
+            @block = :paragraph
+            place_font_name
+        end
+
+        return word                 # Just use the word
+    end
+
+end
+
+# End a Block
+def end_block()
+    case @block
+        when :paragraph
+            puts "PrintParagraph"
+        when :block_quote
+            puts "PrintBlockQuote"
+    end
+
+    @block = 0
 end
 
 # Begin Document
 puts "Begin"
 
 # Loop Through Lines
-paragraph_begin()
 source.each do |line|
     words = line.split
 
-# Empty line means end of paragraph
+    # Empty line means end of paragraph/whatever
     if words.length == 0
-        paragraph_end()
-        paragraph_begin()
+        end_block
         next
     end
 
-# Loop Through Words
+    # Check if this is the same block
+    words[0] = check_block(words[0])
+
+    # Loop Through Words
     words.each do |word|
-        word = word.gsub("(", "\\(")
-        word = word.gsub(")", "\\)")
-        print "(" + word + ") "
+
+        # Format as a string, escape any special chars
+        if word.length != 0
+            word = word.gsub("\\", "\\\\")
+            word = word.gsub("(", "\\(")
+            word = word.gsub(")", "\\)")
+
+            print "(" + word + ") "
+        end
+
     end
 
 end
-paragraph_end()
+end_block
 
 # End Document
 puts "End"

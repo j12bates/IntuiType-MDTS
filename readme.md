@@ -1,5 +1,6 @@
 # IntuiType -- Markdown Typesetter
-A Lightweight Document Formatting Tool for Typesetting Documents from Markdown Source
+For those who just want to write nicely formatted documents without breaking out a word processor or dealing with LaTeX or t/groff.
+Produces consistent results without much overhead or customization: just use some basic markdown if you want to do additional formatting.
 
 ---
 
@@ -14,7 +15,7 @@ Ensure that `generate.rb` is executable.
 ```
 mkdir install_dir
 chmod +x src/generate.rb
-cp src/* install_dir/
+cp -r src/ install_dir/
 ```
 
 ## Usage

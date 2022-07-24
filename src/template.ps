@@ -14,9 +14,6 @@
 %   See the License for the specific language governing permissions and
 %   limitations under the License.
 
-% Paper Size
-/PaperSize /letter def
-
 % Unit Conversions
 /in { 72 mul } def
 /mm { 2.83465 mul } def
@@ -275,11 +272,11 @@ PaperSize /a4 eq {
 /CalcLine {
 
                                                                 % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent
-    /curLineWidth 0 def                                         % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     If a word fits, the total width is here
-    /nxtLineWidth 0 def                                         % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     Used to check if a word will fit with previous whitespace
-    /curLineWords 0 def
+    /curWidth 0 def                                             % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     If a word fits, the total width is here
+    /nxtWidth 0 def                                             % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     Used to check if a word will fit with previous whitespace
+    /curWords 0 def
 
-    /maxLineWidth Line pop pop                                  % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent /v width        Maximum line width
+    /maxWidth Line pop pop                                      % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent /v width        Maximum line width
     2 index Indent mul sub def pop                              % /f (word1) [/f] (word2)..[/f] (wordX) maxItems                        Account for indentation if necessary
 
     /maxItems exch 1 add def                                    % /f (word1) [/f] (word2)..[/f] (wordX)         Stack item count
@@ -296,32 +293,35 @@ PaperSize /a4 eq {
         dup 0 eq { maxItems 1 roll exit } if                    % ../f (pre) [(cur) OR /f]          If this is the end mark, replace it and exit
 
         dup type /nametype eq
-        {                                                       % (cur) [/f] (nxt)../f (pre) /f
+        {
+                                                                % (cur) [/f] (nxt)../f (pre) /f
             /curFontFace exch def                               % (cur) [/f] (nxt)../f (pre)        If this is a font name, set variable
-            /maxItems maxItems 1 sub def                        % [/f] (nxt)../f (pre) (cur)        Account for lost item
-            maxItems -1 roll                                    % [/f] (nxt)../f (pre) (cur)        Bring up current word
-        } if
+            /maxItems maxItems 1 sub def                        % (cur) [/f] (nxt)../f (pre)        Account for lost item
 
-        curFontFace exch                                        % [/f] (nxt)../f (pre) /f (cur)     Bury current font for print routine
-        /maxItems maxItems 1 add def                            % [/f] (nxt)../f (pre) /f (cur)     Account for additional item
+        } {
+                                                                % [/f] (nxt)../f (pre) (cur)
+            curFontFace exch                                    % [/f] (nxt)../f (pre) /f (cur)     Otherwise, bury current font for print routine
+            /maxItems maxItems 1 add def                        % [/f] (nxt)../f (pre) /f (cur)     Account for additional item
 
-        % This part checks if the word will fit in the line
-        /final false def                                        % [/f] (nxt)../f (cur)              If we exit, this isn't the final line
+            % This part checks if the word will fit in the line
+            /final false def                                    % [/f] (nxt)../f (cur)              If we exit, this isn't the final line
 
-        curFontFace findfont FontHeight scalefont setfont       % [/f] (nxt)../f (cur)              Set word font
-        dup stringwidth pop nxtLineWidth add                    % [/f] (nxt)../f (cur) width        Width of line including this word
-        dup maxLineWidth gt { pop maxItems 2 roll exit } if     % [/f] (nxt)../f (cur) width        If word doesn't fit, stop here
-        /curLineWidth exch def                                  % [/f] (nxt)../f (cur)              Otherwise, add to width
-        /curLineWords curLineWords 1 add def                    % [/f] (nxt)../f (cur)              Increment word counter
+            curFontFace findfont FontHeight scalefont setfont   % [/f] (nxt)../f (cur)              Set word font
+            dup stringwidth pop nxtWidth add                    % [/f] (nxt)../f (cur) width        Width of line including this word
+            dup maxWidth gt { pop maxItems 2 roll exit } if     % [/f] (nxt)../f (cur) width        If word doesn't fit, stop here
+            /curWidth exch def                                  % [/f] (nxt)../f (cur)              Otherwise, add to width
+            /curWords curWords 1 add def                        % [/f] (nxt)../f (cur)              Increment word counter
 
-        % This part adds whitespace in case the next word also fits
-        /nxtLineWidth ( ) stringwidth pop curLineWidth add def  % [/f] (nxt)../f (cur)              Width of line including this word with whitespace
+            % This part adds whitespace in case the next word also fits
+            /nxtWidth ( ) stringwidth pop curWidth add def      % [/f] (nxt)../f (cur)              Width of line including this word with whitespace
+
+        } ifelse
 
     } loop
 
                                                                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) 0 /f (word1)../f (wordN)
-    curLineWords 2 mul 1 add -1 roll pop                        % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN)
-    curLineWords curLineWidth final                             % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final
+    curWords 2 mul 1 add -1 roll pop                            % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN)
+    curWords curWidth final                                     % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final
 
 } def
 
