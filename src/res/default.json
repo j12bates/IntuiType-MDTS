@@ -5,11 +5,13 @@
     "leading": 0.15,
     "column_portions": [1, 1],
     "justified": true,
+    "paragraph_space": true,
 
     "heading": {
         "font_names": ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"],
         "font_size": 24,
         "font_size_order_scale": 0.75,
+        "leading": 0.5,
         "column_portions": [1],
         "column_order_persist": false,
         "alignment": "center",

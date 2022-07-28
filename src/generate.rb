@@ -16,8 +16,6 @@
     limitations under the License.
 =end
 
-# TODO - Alternate Heading Notation and Alternate Rule Notation
-# TODO - Code Blocks (fenced and indented)
 # TODO - Measure Indentation when Handling a Line, Higher-Order List Items
 # TODO - Unordered List Items (also implement in PS Template)
 
@@ -85,38 +83,55 @@ end
 @leading = 0
 @column_portions = []
 
-# Update Font from Special Chars (Front or Back)
-def update_font(word, front)
+# Update Font from Delimiters (Left or Right)
+def update_font(word, left)
 
     font_changed = false
 
-    # Check until we find a normal char
-    i = front ? 0 : -1
+    # Go through Delimeter Run
+    pos = left ? 0 : -1
     while word.length != 0
-        case word[i]
+        case word[pos]
 
-            # Emphasis
+            # Escaped Character
+            when "\\"
+                pos += left ? 2 : -2
+
+            # (Double) Emphasis
             when "*"
-                word.slice!(i)
-                if word[i] == "*"
-                    word.slice!(i)
-                    @bold = !@bold
+                if word[pos + (left ? 1 : -1)] == "*"
+
+                    # Only start emphasis from the left, only end from the right
+                    if @bold == !left
+                        word.slice!(pos)
+                        word.slice!(pos)
+                        @bold = left
+                        font_changed = true
+                    else
+                        pos += left ? 2 : -2
+                    end
+
                 else
-                    @italic = !@italic
+                    if @italic == !left
+                        word.slice!(pos)
+                        @italic = left
+                        font_changed = true
+                    else
+                        pos += left ? 1 : -1
+                    end
                 end
 
             # Monospace
             when "`"
-                word.slice!(i)
+                word.slice!(pos)
                 @mono = !@mono
+                font_changed = true
 
             # Normal char
             else
                 break
 
         end
-
-        font_changed = true
     end
 
     # Only return a font name if we should print it
@@ -128,13 +143,17 @@ end
 def place_word(word)
 
     # Escape Characters
-    word = word.gsub("\\", "\\\\")
+    word = word.gsub("\\", "\\\\\\\\")
     word = word.gsub("(", "\\(")
     word = word.gsub(")", "\\)")
 
     # Font Changes
-    cur_font = update_font(word, true)
-    next_font = update_font(word, false)
+    cur_font = ""
+    next_font = ""
+    if @cur_block_type != :code_block
+        cur_font = update_font(word, true)
+        next_font = update_font(word, false)
+    end
 
     # Echo Word as String with any Font Names
     print cur_font + "(" + word + ") " + next_font
@@ -151,6 +170,9 @@ end
 @cur_list_index = false
 @given_list_index = 0
 @list_index_font_name = 0
+
+# Initial Paragraph Space
+@start_paragraph_space = false
 
 # Add Words
 def add_words(block_type, words)
@@ -172,11 +194,31 @@ end
 # Handle One Line
 def handle_line(line)
 
+    # Whitespace
+    spaces = line.length - line.lstrip.length
+
     # Split into words
     words = line.split
 
+    # Code Block Fence
+    if words[0] == "```"
+        if @cur_block_type == :code_block
+            end_block
+        else
+            add_words(:code_block, [])
+        end
+
+    # Handle Line in Code Block
+    elsif @cur_block_type == :code_block
+        print "/" + @stylesheet["font_names"][4] + " "
+        if words.length > 0
+            words[0].insert(0, " " * spaces)
+        end
+        add_words(:code_block, words)
+        puts "false 0 PrintParagraphAligned"
+
     # Empty Line
-    if words.length == 0
+    elsif words.length == 0
         end_block
 
     # Heading
@@ -204,6 +246,7 @@ def handle_line(line)
     elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
         end_block
         puts "PrintRule"
+        @start_paragraph_space = false
 
     # Handle Continuing List Item
     elsif @cur_block_type == :list_item
@@ -248,6 +291,12 @@ end
 # Start a Block
 def start_block()
 
+    # Paragraph Space if Needed
+    if (@stylesheet["paragraph_space"] || @cur_block_type == :heading ) && @start_paragraph_space
+        print "NextLine "
+    end
+    @start_paragraph_space = true
+
     # Deal with Parameters
     if @cur_block_type == :heading
 
@@ -268,6 +317,9 @@ def start_block()
             new_section(@stylesheet["heading"]["column_portions"])
         else new_section(@stylesheet["column_portions"])
         end
+
+        # Don't Space the Next Block
+        @start_paragraph_space = false
 
     else
 
@@ -305,7 +357,9 @@ def start_block()
     end
 
     # Starting Font Name
-    print font_name
+    if @cur_font_type != :code_block
+        print font_name
+    end
 
 end
 

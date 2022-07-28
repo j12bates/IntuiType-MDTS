@@ -1,5 +1,7 @@
 # Example Document
 
+---
+
 Here is a sample document which was typeset using the `IntuiType Markdown Typesetter.`
 The first line of this paragraph should be **indented,** meaning there is space between the left margin and the type,
 which in this case should be *one inch* of space.
@@ -32,3 +34,16 @@ The entirety of this document should be written in two columns, with the excepti
 At some point, text should overflow into from the left-hand column into the right-hand column.
 Separating the two columns should be a **gutter,** which is a bit of horizontal spacing,
 and in this case it should be *half an inch* wide.
+
+### Code Blocks
+```
+// This is a code block.
+#include <stdio.h>
+
+// Indentation is rendered and
+// no formatting is done.
+int main()
+{
+    printf("Hello, world!\n");
+}
+```
