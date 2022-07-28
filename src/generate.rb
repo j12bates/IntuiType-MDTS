@@ -139,6 +139,11 @@ end
 # Heading Order
 @heading_order = 0
 
+# List Index
+@cur_list_index = false
+@given_list_index = 0
+@list_index_font_name = 0
+
 # Add Words
 def add_words(block_type, words)
 
@@ -178,10 +183,23 @@ def handle_line(line)
         words.slice!(0)
         add_words(:block_quote, words)
 
+    # List Item
+    elsif words[0][-1] == "."
+        end_block
+        words[0].slice!(-1)
+        @given_list_index = Integer(words[0]) rescue false
+        words.slice!(0)
+        @list_index_font_name = font_name
+        add_words(:list_item, words)
+
     # Rule
-    elsif words[0] == "---" && words.length == 1
+    elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
         end_block
         puts "PrintRule"
+
+    # Handle Continuing List Item
+    elsif @cur_block_type == :list_item
+        add_words(:list_item, words)
 
     # Paragraph
     else
@@ -257,6 +275,27 @@ def start_block()
 
     end
 
+    # Deal with List Index
+    if @cur_block_type == :list_item
+
+        # If we weren't given a index, use a default of 1
+        if !@given_list_index
+            @given_list_index = 1
+        end
+
+        # If the list is continuing, increment the index
+        if @cur_list_index
+            @cur_list_index += 1
+
+        # Otherwise, use the index given
+        else @cur_list_index = @given_list_index
+        end
+
+    # If the list has ended, don't keep track of the index
+    else @cur_list_index = false
+
+    end
+
     # Starting Font Name
     print font_name
 
@@ -271,6 +310,8 @@ def end_block()
             puts "PrintBlockQuote"
         when :heading
             puts "false " + (@stylesheet["heading"]["alignment"] == "center" && (@heading_order == 0 || @stylesheet["heading"]["alignment_order_persist"]) ? "1" : "0") + " PrintParagraphAligned"
+        when :list_item
+            puts @list_index_font_name + "(" + @cur_list_index.to_s + ") 0 PrintListItem"
         when :paragraph
             puts "PrintParagraph"
     end

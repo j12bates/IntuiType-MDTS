@@ -477,7 +477,7 @@ PaperSize /a4 eq {
     /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX) /f (index) order        No padding
     /indent exch def                                            % /f (word1) [/f] (word2)..[/f] (wordX) /f (index)              Times to indent for index
 
-    Line exch indent Indent mul add exch                        % /f (word1) [/f] (word2)..[/f] (wordX) /f (index) width x y        Current line with necessary indentation
+    Line exch indent 0.5 add Indent mul add exch                % /f (word1) [/f] (word2)..[/f] (wordX) /f (index) width x y        Current line with necessary indentation (plus a bit extra)
     moveto pop                                                  % /f (word1) [/f] (word2)..[/f] (wordX) /f (index)                  Move pointer
 
     exch findfont FontHeight scalefont setfont                  % /f (word1) [/f] (word2)..[/f] (wordX) (index)     Set index font
