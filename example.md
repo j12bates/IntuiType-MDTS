@@ -1,6 +1,6 @@
 Here is a sample document which was typeset using the `IntuiType Markdown Typesetter.`
 The first line of this paragraph should be **indented,** meaning there is space between the left margin and the type,
-which in this case should be _one inch_ of space.
+which in this case should be *one inch* of space.
 This paragraph should be **justified,** meaning the left side of the paragraph is flush with the left margin, and the right side is flush with the right margin,
 except the final line, unless it just happens to be the right length.
 There should also be **leading,** or space between each line, and in this case it should be *fifteen percent* of the font height.

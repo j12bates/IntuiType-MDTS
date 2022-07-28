@@ -40,60 +40,19 @@ ps_template.each do |line|
 end
 puts
 
-# Source File
-source = File.open(ARGV[0], "r")
+# Stylesheet
+require "json"
 
-# Current Block Type
-@block = 0
+stylesheet_file = "default"
 
-# Check First Word to see if we need to Start a New Block
-def check_block(word)
-
-    # Blockquote
-    if word[0] == ">"
-        if @block != :block_quote
-            end_block
-            @block = :block_quote
-            print font_name
-        end
-
-        return word[1, -1].to_s     # Remove the angle bracket
-
-    # Rule
-    elsif word == "---"
-        if @block == 0
-            puts "PrintRule"
-        end
-
-        return ""
-
-    # Paragraph
-    else
-        if @block != :paragraph
-            end_block
-            @block = :paragraph
-            print font_name
-        end
-
-        return word                 # Just use the word
-    end
-
+if ARGV.length >= 2
+    stylesheet_file = ARGV[1]
 end
 
-# End a Block
-def end_block()
-    case @block
-        when :paragraph
-            puts "PrintParagraph"
-        when :block_quote
-            puts "PrintBlockQuote"
-    end
-
-    @block = 0
-end
+@stylesheet = JSON.parse(File.read(File.join(__dir__, "res", stylesheet_file + ".json")))
 
 # Font Faces
-@font_names = ["Times-Roman", "Times-Italic", "Times-Bold", "Times-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"]
+@font_names = @stylesheet["font_names"]
 
 @italic = false
 @bold = false
@@ -105,7 +64,7 @@ def font_name()
     return "/" + name + " "
 end
 
-# Update Font if Specified (Front or Back) and Remove Chars
+# Update Font from Special Chars (Front or Back)
 def update_font(word, front)
 
     font_changed = false
@@ -115,12 +74,7 @@ def update_font(word, front)
     while word.length != 0
         case word[i]
 
-            # Italic
-            when "_"
-                word.slice!(i)
-                @italic = !@italic
-
-            # Italic, or maybe Bold
+            # Emphasis
             when "*"
                 word.slice!(i)
                 if word[i] == "*"
@@ -166,31 +120,81 @@ def place_word(word)
 
 end
 
+# Current Block Type
+@cur_block_type = 0
+
+# Add Words
+def add_words(block_type, words)
+
+    # Handle a New Block
+    if block_type != @cur_block_type
+        end_block
+        @cur_block_type = block_type
+        print font_name
+    end
+
+    # Place Words as Strings
+    words.each do |word|
+        place_word(word)
+    end
+
+end
+
+# Handle One Line
+def handle_line(line)
+
+    # Split into words
+    words = line.split
+
+    # Empty Line
+    if words.length == 0
+        end_block
+
+    # Blockquote
+    elsif words[0] == ">"
+        words.slice!(0)
+        add_words(:block_quote, words)
+
+    # Rule
+    elsif words[0] == "---" && words.length == 1
+        end_block
+        puts "PrintRule"
+
+    # Paragraph
+    else
+        add_words(:paragraph, words)
+
+    end
+
+end
+
+# End a Block
+def end_block()
+
+    # Printing Procedure
+    case @cur_block_type
+        when :paragraph
+            puts "PrintParagraph"
+        when :block_quote
+            puts "PrintBlockQuote"
+    end
+
+    # Prevent this from Recurring
+    @cur_block_type = 0
+
+end
+
+# Source File
+source = File.open(ARGV[0], "r")
+
 # Begin Document
 puts "Begin"
 
 # Loop Through Lines
 source.each do |line|
-    words = line.split
 
-    # Empty line means end of paragraph/whatever
-    if words.length == 0
-        end_block
-        next
-    end
-
-    # Check if this is the same block
-    words[0] = check_block(words[0])
-
-    # Loop Through Words
-    words.each do |word|
-
-        # Format as a string
-        if word.length != 0
-            place_word(word)
-        end
-
-    end
+    # Handle Line
+    handle_line(line)
 
 end
 end_block

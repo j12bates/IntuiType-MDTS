@@ -1,0 +1,17 @@
+{
+
+    "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"],
+    "font_size": 12,
+    "leading": 0.15,
+    "column_portions": [1],
+    "justified": true,
+
+    "heading": {
+        "font_names": ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"],
+        "font_size": 24,
+        "d_font_size": 4,
+        "leading": 0.15,
+        "alignment": "centre"
+    }
+
+}
