@@ -51,18 +51,31 @@ end
 
 @stylesheet = JSON.parse(File.read(File.join(__dir__, "res", stylesheet_file + ".json")))
 
-# Font Faces
-@font_names = @stylesheet["font_names"]
-
+# Fonts
 @italic = false
 @bold = false
 @mono = false
 
 # Get Font Name
 def font_name()
-    name = @font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
+
+    # List of Font Names
+    font_names = @stylesheet["font_names"]
+
+    # Heading
+    if @cur_block_type == :heading && @stylesheet["heading"]["font_names"]
+        font_names = @stylesheet["heading"]["font_names"]
+    end
+
+    # Get Name and Format as PostScript Name
+    name = font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
     return "/" + name + " "
 end
+
+# Parameters
+@font_size = 0
+@leading = 0
+@column_portions = []
 
 # Update Font from Special Chars (Front or Back)
 def update_font(word, front)
@@ -123,6 +136,9 @@ end
 # Current Block Type
 @cur_block_type = 0
 
+# Heading Order
+@heading_order = 0
+
 # Add Words
 def add_words(block_type, words)
 
@@ -130,7 +146,7 @@ def add_words(block_type, words)
     if block_type != @cur_block_type
         end_block
         @cur_block_type = block_type
-        print font_name
+        start_block
     end
 
     # Place Words as Strings
@@ -148,6 +164,13 @@ def handle_line(line)
 
     # Empty Line
     if words.length == 0
+        end_block
+
+    # Heading
+    elsif words[0].count("#") == words[0].length && words[0].length >= 1 && words[0].length <= 6
+        @heading_order = words[0].length - 1
+        words.slice!(0)
+        add_words(:heading, words)
         end_block
 
     # Blockquote
@@ -168,15 +191,88 @@ def handle_line(line)
 
 end
 
+# Start New Section
+def new_section(new_column_portions)
+
+    # Font Size and Leading
+    print @font_size.to_s + " " + @leading.to_s + " "
+
+    # Preserve Columns if Possible
+    if new_column_portions == @column_portions
+        print "0 "
+    else
+
+        # PostScript Array
+        print "[ "
+        for i in new_column_portions
+            print i.to_s + " "
+        end
+        print "] "
+
+    end
+
+    # Keep Track of Columns
+    @column_portions = new_column_portions
+
+    # Procedure
+    puts "NewSection "
+
+end
+
+# Start a Block
+def start_block()
+
+    # Deal with Parameters
+    if @cur_block_type == :heading
+
+        # Update Font Size if Necessary
+        if @stylesheet["heading"]["font_size"] && @stylesheet["heading"]["font_size_order_scale"]
+            @font_size = @stylesheet["heading"]["font_size"] * @stylesheet["heading"]["font_size_order_scale"] ** @heading_order
+        else @font_size = @stylesheet["font_size"]
+        end
+
+        # Update Leading if Necessary
+        if @stylesheet["heading"]["leading"]
+            @leading = @stylesheet["heading"]["leading"]
+        else @leading = @stylesheet["leading"]
+        end
+
+        # Update Columns if Necessary and Start New Section
+        if @stylesheet["heading"]["column_portions"] && (@heading_order == 0 || @stylesheet["heading"]["column_order_persist"])
+            new_section(@stylesheet["heading"]["column_portions"])
+        else new_section(@stylesheet["column_portions"])
+        end
+
+    else
+
+        # Update Parameters if Necessary
+        if @font_size != @stylesheet["font_size"] || @leading != @stylesheet["leading"] || @column_portions != @stylesheet["column_portions"]
+
+            # Start New Section
+            @font_size = @stylesheet["font_size"]
+            @leading = @stylesheet["leading"]
+            new_section(@stylesheet["column_portions"])
+
+        end
+
+    end
+
+    # Starting Font Name
+    print font_name
+
+end
+
 # End a Block
 def end_block()
 
     # Printing Procedure
     case @cur_block_type
-        when :paragraph
-            puts "PrintParagraph"
         when :block_quote
             puts "PrintBlockQuote"
+        when :heading
+            puts "false " + (@stylesheet["heading"]["alignment"] == "center" && (@heading_order == 0 || @stylesheet["heading"]["alignment_order_persist"]) ? "1" : "0") + " PrintParagraphAligned"
+        when :paragraph
+            puts "PrintParagraph"
     end
 
     # Prevent this from Recurring

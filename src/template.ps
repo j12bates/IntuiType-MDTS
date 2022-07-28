@@ -64,6 +64,7 @@ PaperSize /a4 eq {
 % Variables
 /PaddingX 0 in def
 /SectionOffset 0 in def
+/TempSectionOffset 0 in def
 
 /documentPage 1 def
 /pageColumn 0 def
@@ -100,7 +101,9 @@ PaperSize /a4 eq {
         3 -1 roll pop                                               % width x
 
         % This part finds the Y-value of the line
-        PageHeight MarginY SectionOffset add sub pageLine           % width x top line              If not, top margin/top of section and line number
+        TempSectionOffset SectionOffset gt                          % width x tempGreater
+        { TempSectionOffset } { SectionOffset } ifelse              % width x offset                Use the temporary offset if it's greater
+        MarginY add PageHeight exch sub pageLine                    % width x top line              Top margin/top of section and line number
         FontHeight Leading 1 add mul                                % width x top line spacing      Spacing per line
         mul FontHeight add sub                                      % width x y                     Pointer is at bottom of line
 
@@ -137,6 +140,8 @@ PaperSize /a4 eq {
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn pageColumn 1 add def                                %                               Next column
+
+    /TempSectionOffset 0 def                                        %                               Reset any section offset made for column preservation
 
     pageColumn ColumnPortions length eq                             % pageFull                      Are we out of columns?
     { NextPage } if                                                 %                               If so, next page
@@ -201,13 +206,14 @@ PaperSize /a4 eq {
 % sections
 /NewSection {
 
-    dup 0 eq /preserveColumns exch def                              % FontHeight Leading ColumnPortions     Keep track of whether the columns should be preserved
-    preserveColumns { pop } { /ColumnPortions exch def } ifelse     % FontHeight Leading                    We can set this parameter as it doesn't affect Y-value
+    dup 0 eq dup /presColumns exch def                              % FontHeight Leading ColumnPortions presColumns     Keep track of whether the columns should be preserved
+    { pop } { /ColumnPortions exch def } ifelse                     % FontHeight Leading                                We can set this parameter as it doesn't affect Y-value
 
-    pageColumn 0 eq preserveColumns or                              % FontHeight Leading changeColumns      Have we either used only one column or are using the same columns?
+    pageColumn 0 eq presColumns or                                  % FontHeight Leading changeColumns      Have we either used only one column or are using the same columns?
     {
         Line FontHeight add PageHeight MarginY sub exch sub         % FontHeight Leading width x y          If so, calculate offset from the top of this line
-        /SectionOffset exch def pop pop                             % FontHeight Leading                    We can start the section where we are
+        presColumns { /TempSectionOffset } { /SectionOffset } ifelse% FontHeight Leading width x y /var     If we're preserving columns, we'll only be offsetting until the next column
+        exch def pop pop                                            % FontHeight Leading                    We can start the section where we are
     } {
         NextPage /SectionOffset 0 def                               % FontHeight Leading                    Otherwise, we must start the section on the next page
     } ifelse
@@ -216,7 +222,7 @@ PaperSize /a4 eq {
     /FontHeight exch def                                            %
 
     /pageLine 0 def                                                 %                               Reset line
-    preserveColumns not { /pageColumn 0 def } if                    %                               Reset column if necessary
+    presColumns not { /pageColumn 0 def } if                        %                               Reset column if necessary
 
 } def
 
