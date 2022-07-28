@@ -16,6 +16,14 @@
     limitations under the License.
 =end
 
+# TODO - Alternate Heading Notation and Alternate Rule Notation
+# TODO - Code Blocks (fenced and indented)
+# TODO - Measure Indentation when Handling a Line, Higher-Order List Items
+# TODO - Unordered List Items (also implement in PS Template)
+
+# TODO - Add Page Size and Document Standards to Stylesheet
+# TODO - Anchors (actually just URIs with an icon ig)
+
 # PostScript Version
 puts "%!PS-Adobe-3.0"
 
