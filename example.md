@@ -33,6 +33,8 @@ as having fewer items will make the writing simple enough to be understood witho
 The previous list is actually called a **numbered list,** and this is called a **bullet list.**
 - This is another item in a bullet list.
 It should be preceded by a dot, and as with ordered lists, every line should be indented.
+  - This is an item in a lower-order list.
+  - Lower-order items should be indented further than higher-order items.
 - This is another item in a bullet list.
 Bullet lists differ from numbered lists in that items have no particular order.
 

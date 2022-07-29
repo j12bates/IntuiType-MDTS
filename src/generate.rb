@@ -170,6 +170,9 @@ end
 @given_list_index = 0
 @list_index_font_name = 0
 
+# List Order
+@list_order_indents = [0]
+
 # Initial Paragraph Space
 @start_paragraph_space = false
 
@@ -239,6 +242,11 @@ def handle_line(line)
         @given_list_index = Integer(words[0]) rescue false
         words.slice!(0)
         @list_index_font_name = font_name
+        while spaces <= @list_order_indents[-1]
+            @list_order_indents.pop
+            if @list_order_indents.length == 0 then break end
+        end
+        @list_order_indents.push(spaces)
         add_words(:list_item, words)
 
     # Unordered List Item
@@ -247,9 +255,14 @@ def handle_line(line)
         @cur_list_index = false
         @given_list_index = false
         words.slice!(0)
+        while spaces <= @list_order_indents[-1]
+            @list_order_indents.pop
+            if @list_order_indents.length == 0 then break end
+        end
+        @list_order_indents.push(spaces)
         add_words(:list_item, words)
 
-    # Rule
+    # Horizontal Rule
     elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
         end_block
         puts "PrintRule"
@@ -354,9 +367,10 @@ def start_block()
             @cur_list_index = @given_list_index
         end
 
-    # If the list has ended, don't keep track of the index
+    # If the list has ended, don't keep track of the index or order
     else
         @cur_list_index = false
+        @list_order_indents = [0]
     end
 
     # Starting Font Name
@@ -377,9 +391,9 @@ def end_block()
             puts "false " + (@stylesheet["heading"]["alignment"] == "center" && (@heading_order == 0 || @stylesheet["heading"]["alignment_order_persist"]) ? "1" : "0") + " PrintParagraphAligned"
         when :list_item
             if @cur_list_index
-                puts @list_index_font_name + "(" + @cur_list_index.to_s + ") 0 PrintOrderedListItem"
+                puts @list_index_font_name + "(" + @cur_list_index.to_s + ") " + (@list_order_indents.length - 1).to_s + " PrintOrderedListItem"
             else
-                puts "0 PrintBulletListItem"
+                puts (@list_order_indents.length - 1).to_s + " PrintBulletListItem"
             end
         when :paragraph
             puts "PrintParagraph"
