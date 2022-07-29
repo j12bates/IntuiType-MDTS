@@ -17,7 +17,6 @@
 =end
 
 # TODO - Measure Indentation when Handling a Line, Higher-Order List Items
-# TODO - Unordered List Items (also implement in PS Template)
 
 # TODO - Add Page Size and Document Standards to Stylesheet
 # TODO - Anchors (actually just URIs with an icon ig)
@@ -233,13 +232,21 @@ def handle_line(line)
         words.slice!(0)
         add_words(:block_quote, words)
 
-    # List Item
-    elsif words[0][-1] == "."
+    # Ordered List Item
+    elsif words[0][-1] == "." && (Integer(words[0][0..-2]) rescue false)
         end_block
         words[0].slice!(-1)
         @given_list_index = Integer(words[0]) rescue false
         words.slice!(0)
         @list_index_font_name = font_name
+        add_words(:list_item, words)
+
+    # Unordered List Item
+    elsif words[0] == "-" || words[0] == "*" || words[0] == "+"
+        end_block
+        @cur_list_index = false
+        @given_list_index = false
+        words.slice!(0)
         add_words(:list_item, words)
 
     # Rule
@@ -338,22 +345,18 @@ def start_block()
     # Deal with List Index
     if @cur_block_type == :list_item
 
-        # If we weren't given a index, use a default of 1
-        if !@given_list_index
-            @given_list_index = 1
-        end
-
         # If the list is continuing, increment the index
         if @cur_list_index
             @cur_list_index += 1
 
         # Otherwise, use the index given
-        else @cur_list_index = @given_list_index
+        else
+            @cur_list_index = @given_list_index
         end
 
     # If the list has ended, don't keep track of the index
-    else @cur_list_index = false
-
+    else
+        @cur_list_index = false
     end
 
     # Starting Font Name
@@ -373,7 +376,11 @@ def end_block()
         when :heading
             puts "false " + (@stylesheet["heading"]["alignment"] == "center" && (@heading_order == 0 || @stylesheet["heading"]["alignment_order_persist"]) ? "1" : "0") + " PrintParagraphAligned"
         when :list_item
-            puts @list_index_font_name + "(" + @cur_list_index.to_s + ") 0 PrintListItem"
+            if @cur_list_index
+                puts @list_index_font_name + "(" + @cur_list_index.to_s + ") 0 PrintOrderedListItem"
+            else
+                puts "0 PrintBulletListItem"
+            end
         when :paragraph
             puts "PrintParagraph"
     end

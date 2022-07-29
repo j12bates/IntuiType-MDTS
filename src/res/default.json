@@ -1,6 +1,6 @@
 {
 
-    "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"],
+    "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
     "font_size": 12,
     "leading": 0.15,
     "column_portions": [1, 1],
@@ -8,7 +8,7 @@
     "paragraph_space": true,
 
     "heading": {
-        "font_names": ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-Bold-Italic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-Bold-Italic"],
+        "font_names": ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
         "font_size": 24,
         "font_size_order_scale": 0.75,
         "leading": 0.5,

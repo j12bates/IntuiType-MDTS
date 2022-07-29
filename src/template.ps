@@ -467,9 +467,9 @@ PaperSize /a4 eq {
 
 } def
 
-% Print a List Item
+% Print an Ordered List Item
 % BASE /f (word1) [/f] (word2)..[/f] (wordX) /f (index) order -> BASE -
-/PrintListItem {
+/PrintOrderedListItem {
 
     /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX) /f (index) order        No padding
     /indent exch def                                            % /f (word1) [/f] (word2)..[/f] (wordX) /f (index)              Times to indent for index
@@ -481,6 +481,34 @@ PaperSize /a4 eq {
     show (.) show                                               % /f (word1) [/f] (word2)..[/f] (wordX)             Print index
 
     /indent indent 1 add def                                    % /f (word1) [/f] (word2)..[/f] (wordX)             Indent once more past the index
+
+    {
+
+        count indent CalcLine                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
+        dup not 0 indent 4 -1 roll                              % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
+        { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
+        NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
+
+    } loop
+
+    NextLine                                                    %                                   We didn't advance a line last time
+
+} def
+
+% Print a Bullet List Item
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) order -> BASE -
+/PrintBulletListItem {
+
+    /PaddingX 0 in def                                          % /f (word1) [/f] (word2)..[/f] (wordX) order       No padding
+    /indent exch def                                            % /f (word1) [/f] (word2)..[/f] (wordX)             Times to indent for index
+
+    Line exch indent 0.5 add Indent mul add exch                % /f (word1) [/f] (word2)..[/f] (wordX) width x y       Current line with necessary indentation (plus a bit extra)
+    moveto pop                                                  % /f (word1) [/f] (word2)..[/f] (wordX)                 Move pointer
+
+    /Symbol findfont FontHeight scalefont setfont               % /f (word1) [/f] (word2)..[/f] (wordX)             Symbol font for bullet
+    (\267) show                                                 % /f (word1) [/f] (word2)..[/f] (wordX)             Print bullet
+
+    /indent indent 1 add def                                    % /f (word1) [/f] (word2)..[/f] (wordX)             Indent once more past the bullet
 
     {
 
