@@ -25,8 +25,11 @@ jobs:
 
       - run: |
           src/generate.rb example.md > output.ps
+          ps2pdf output.ps
           
       - uses: actions/upload-artifact@v3
         with:
           name: example-output
-          path: output.ps
+          path: |
+            output.ps
+            output.pdf
