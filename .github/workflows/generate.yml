@@ -23,8 +23,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       
-      - name: install ps2pdf
-        run: sudo apt install ps2pdf
+      - name: install ghostscript
+        run: sudo apt install ghostscript
 
       - name: generate postscript
         run: src/generate.rb example.md > output.ps
