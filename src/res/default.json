@@ -4,7 +4,9 @@
     "font_size": 12,
     "leading": 0.15,
     "column_portions": [1, 1],
-    "paragraph_space": true,
+    "align": "justify",
+    "indent": "not_after_heading",
+    "space_above": "not_after_heading",
 
     "heading": {
         "font_names": ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
@@ -12,9 +14,10 @@
         "font_size_scale": 0.8,
         "leading": 0.5,
         "column_portions_highest": [1],
-        "alignment_highest": "center",
-        "alignment": "left",
-        "paragraph_space": true
+        "align_highest": "center",
+        "align": "left",
+        "indent": "never",
+        "space_above": "not_after_heading"
     },
 
     "code_block": {
@@ -22,8 +25,8 @@
     },
 
     "unordered_list_item": {
-        "paragraph_space_highest": true,
-        "paragraph_space": false
+        "space_above_highest": "not_after_heading",
+        "space_above": "never"
     }
 
 }

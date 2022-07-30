@@ -18,7 +18,6 @@
 
 =end
 
-# TODO - Implement Alignment as a Style Setting
 # TODO - Raise Exceptions when Style Settings are Missing
 
 # TODO - Add Page Size and Document Standards to Stylesheet/Something else
@@ -251,9 +250,6 @@ end
 # Indentation Levels
 @indent_levels = [0]
 
-# Don't add space to the first block
-@start_paragraph_space = false
-
 # Add Words
 def add_words(block_type, block_order, words)
 
@@ -304,7 +300,7 @@ def handle_line(line)
             words[0].insert(0, " " * spaces)
         end
         add_words(:code_block, 0, words)
-        puts "false 0 PrintParagraphAligned"
+        puts "false false 0 PrintParagraph"
 
     # Empty Line
     elsif words.length == 0
@@ -341,7 +337,7 @@ def handle_line(line)
     elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
         end_block
         puts "PrintRule"
-        @start_paragraph_space = false
+        @block_heading = true
 
     # Handle Continuing List Item
     elsif @cur_block_type == :ordered_list_item || @cur_block_type == :unordered_list_item
@@ -388,19 +384,33 @@ def set_parameters(font_size, leading, column_portions)
 
 end
 
+# Status Variables (for spacing and indentation)
+@first_block = true
+@block_heading = false
+@prev_block_heading = false
+
 # Start a Block
 def start_block()
 
     # Update Parameters
     set_parameters(get_style("font_size"), get_style("leading"), get_style("column_portions"))
 
-    # Paragraph Space if Needed
-    if get_style("paragraph_space") && @start_paragraph_space
-        print "NextLine "
-    end
+    # Update Status Variables
+    @prev_block_heading = @block_heading
+    @block_heading = @cur_block_type == :heading
 
-    # The next block can be spaced, unless this is a heading
-    @start_paragraph_space = @cur_block_type != :heading
+    # Vertical Spacing
+    if !@first_block
+        case get_style("space_above")
+            when "always"
+                print "NextLine "
+            when "not_after_heading"
+                if !@prev_block_heading
+                    print "NextLine "
+                end
+        end
+    end
+    @first_block = false
 
     # Deal with List Index
     if @cur_block_type == :ordered_list_item
@@ -429,6 +439,35 @@ def start_block()
 
 end
 
+# Get Printing Procedure for Ordinary Blocks
+def print_proc()
+
+    # Indentation
+    indent = false
+    case get_style("indent")
+        when "always"
+            indent = true
+        when "not_after_heading"
+            indent = !@prev_block_heading
+    end
+
+    # Justification/Alignment
+    justify = false
+    align = 0
+    case get_style("align")
+        when "center"
+            align = 1
+        when "right"
+            align = 2
+        when "justify"
+            justify = true
+    end
+
+    # Return Procedure with Arguments
+    return indent.to_s + " " + justify.to_s + " " + align.to_s + " PrintParagraph"
+
+end
+
 # End a Block
 def end_block()
 
@@ -437,13 +476,13 @@ def end_block()
         when :block_quote
             puts "PrintBlockQuote"
         when :heading
-            puts "false " + (get_style("alignment") == "center" ? "1" : "0") + " PrintParagraphAligned"
+            puts print_proc
         when :ordered_list_item
             puts @list_index_font_name + "(" + @list_indices[@cur_block_order].to_s + ") " + @cur_block_order.to_s + " PrintOrderedListItem"
         when :unordered_list_item
             puts @cur_block_order.to_s + " PrintBulletListItem"
         when :paragraph
-            puts "PrintParagraph"
+            puts print_proc
     end
 
     # Reset to Prevent this from Recurring

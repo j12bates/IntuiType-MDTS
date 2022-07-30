@@ -394,21 +394,28 @@ PaperSize /a4 eq {
 } def
 
 % Print a Paragraph
-% BASE /f (word1) [/f] (word2)..[/f] (wordX) -> BASE -
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) indent1 justify align -> BASE -
 %
 % The stack should consist of only the words in the paragraph.
 % Words are individual strings optionally preceded by a font
 % name. The first word is at the base of the stack and it must
 % have a font name.
+%
+% Alignment is specified using an integer. 0 means left-align, 1
+% means centre-align, and 2 means right-align. Whether the first
+% line should be indented and whether the paragraph should be
+% justified are specified using booleans.
 /PrintParagraph {
 
-    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX)          No padding
+    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) indent1 justify align        No padding
+    /align exch def                                             % /f (word1)..[/f] (wordX) indent1 justify
+    /justify exch def                                           % /f (word1)..[/f] (wordX) indent1
 
-    /indent 1 def                                               % /f (word1)..[/f] (wordX)          This is the first line, so indent once
+    /indent exch { 1 } { 0 } ifelse def                         % /f (word1)..[/f] (wordX)          Indent the first line once if necessary
     {
 
         count indent CalcLine                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
-        dup not 0 indent 4 -1 roll                              % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
+        dup not justify and align indent 4 -1 roll              % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
         { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
         NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
 
@@ -419,34 +426,6 @@ PaperSize /a4 eq {
     NextLine                                                    %                                   We didn't advance a line last time
 
 } def
-
-% Print a Paragraph with Alignment
-% BASE /f (word1) [/f] (word2)..[/f] (wordX) indent1 align -> BASE -
-%
-% Alignment is specified using an integer. 0 means left-align, 1
-% means centre-align, and 2 means right-align. Whether the first
-% line should be indented is specified using a boolean.
-/PrintParagraphAligned {
-
-    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) indent1 align        No padding
-    /align exch def                                             % /f (word1)..[/f] (wordX) indent1              Set variable
-
-    /indent exch { 1 } { 0 } ifelse def                         % /f (word1)..[/f] (wordX)          Indent the first line once if necessary
-    {
-
-        count indent CalcLine                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
-        false align indent 4 -1 roll                            % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
-        { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
-        NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
-
-        /indent 0 def                                           % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)     Don't indent subsequent lines
-
-    } loop
-
-    NextLine                                                    %                                   We didn't advance a line last time
-
-} def
-
 
 % Print a Block-Quote
 % BASE /f (word1) [/f] (word2)..[/f] (wordX) -> BASE -
