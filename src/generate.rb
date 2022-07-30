@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 =begin
+
     Copyright 2022 Jacob Bates
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +15,9 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
 =end
 
-# TODO - Separate List Types, Clean Up Line Handler, Normalize Indentation Handling
 # TODO - Implement Alignment as a Style Setting
 # TODO - Raise Exceptions when Style Settings are Missing
 
@@ -243,12 +244,12 @@ def place_word(word)
 end
 
 # List Index
-@cur_list_index = false
+@list_indices = []
 @given_list_index = 0
 @list_index_font_name = ""
 
-# List Order
-@list_order_indents = [0]
+# Indentation Levels
+@indent_levels = [0]
 
 # Don't add space to the first block
 @start_paragraph_space = false
@@ -274,8 +275,16 @@ end
 # Handle One Line
 def handle_line(line)
 
-    # Whitespace
+    # Indentation
     spaces = line.length - line.lstrip.length
+
+    # Calculate Level, which may be used for order
+    while spaces <= @indent_levels[-1]
+        @indent_levels.pop
+        if @indent_levels.length == 0 then break end
+    end
+    @indent_levels.push(spaces)
+    indent_level = @indent_levels.length - 1
 
     # Split into words
     words = line.split
@@ -320,25 +329,13 @@ def handle_line(line)
         @given_list_index = Integer(words[0]) rescue false
         words.slice!(0)
         @list_index_font_name = font_name
-        while spaces <= @list_order_indents[-1]
-            @list_order_indents.pop
-            if @list_order_indents.length == 0 then break end
-        end
-        @list_order_indents.push(spaces)
-        add_words(:list_item, @list_order_indents.length - 1, words)
+        add_words(:ordered_list_item, indent_level, words)
 
     # Unordered List Item
     elsif words[0] == "-" || words[0] == "*" || words[0] == "+"
         end_block
-        @cur_list_index = false
-        @given_list_index = false
         words.slice!(0)
-        while spaces <= @list_order_indents[-1]
-            @list_order_indents.pop
-            if @list_order_indents.length == 0 then break end
-        end
-        @list_order_indents.push(spaces)
-        add_words(:list_item, @list_order_indents.length - 1, words)
+        add_words(:unordered_list_item, indent_level, words)
 
     # Horizontal Rule
     elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
@@ -347,8 +344,8 @@ def handle_line(line)
         @start_paragraph_space = false
 
     # Handle Continuing List Item
-    elsif @cur_block_type == :list_item
-        add_words(:list_item, @list_order_indents.length - 1, words)
+    elsif @cur_block_type == :ordered_list_item || @cur_block_type == :unordered_list_item
+        add_words(@cur_block_type, @cur_block_order, words)
 
     # Paragraph
     else
@@ -406,21 +403,23 @@ def start_block()
     @start_paragraph_space = @cur_block_type != :heading
 
     # Deal with List Index
-    if @cur_block_type == :list_item
+    if @cur_block_type == :ordered_list_item
+
+        # Get rid of any lower-order list indices
+        @list_indices = @list_indices[0..@cur_block_order]
 
         # If the list is continuing, increment the index
-        if @cur_list_index
-            @cur_list_index += 1
+        if @list_indices[@cur_block_order]
+            @list_indices[@cur_block_order] += 1
 
         # Otherwise, use the index given
         else
-            @cur_list_index = @given_list_index
+            @list_indices[@cur_block_order] = @given_list_index
         end
 
     # If the list has ended, don't keep track of the index or order
-    else
-        @cur_list_index = false
-        @list_order_indents = [0]
+    elsif @cur_block_type != :unordered_list_item
+        @list_indices = []
     end
 
     # Starting Font Name
@@ -439,12 +438,10 @@ def end_block()
             puts "PrintBlockQuote"
         when :heading
             puts "false " + (get_style("alignment") == "center" ? "1" : "0") + " PrintParagraphAligned"
-        when :list_item
-            if @cur_list_index
-                puts @list_index_font_name + "(" + @cur_list_index.to_s + ") " + @cur_block_order.to_s + " PrintOrderedListItem"
-            else
-                puts @cur_block_order.to_s + " PrintBulletListItem"
-            end
+        when :ordered_list_item
+            puts @list_index_font_name + "(" + @list_indices[@cur_block_order].to_s + ") " + @cur_block_order.to_s + " PrintOrderedListItem"
+        when :unordered_list_item
+            puts @cur_block_order.to_s + " PrintBulletListItem"
         when :paragraph
             puts "PrintParagraph"
     end

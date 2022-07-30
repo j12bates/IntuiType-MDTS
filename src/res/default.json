@@ -21,7 +21,7 @@
         "font_name": "Courier"
     },
 
-    "list_item": {
+    "unordered_list_item": {
         "paragraph_space_highest": true,
         "paragraph_space": false
     }
