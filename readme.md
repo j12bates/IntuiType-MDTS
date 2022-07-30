@@ -9,6 +9,11 @@ A source file contains all the text to be included in the document.
 It it written using many of the conventions used by markdown.
 An example source incorporating supported features can be found in `example.md`.
 
+## Stylesheets
+Stylesheets are used to format all elements of a document while it is being generated.
+They are JSON files located in `src/res/`.
+If no stylesheet is specified when generating a document, `default.json` is used.
+
 ## Installation
 Install by copying the files in `src/` to a directory in `/opt/` or your preferred directory for installing software.
 Ensure that `generate.rb` is executable.
@@ -20,7 +25,7 @@ cp -r src/ install_dir/
 
 ## Usage
 ```
-install_dir/generate.rb SOURCE_FILE
+install_dir/generate.rb SOURCE_FILE [STYLESHEET]
 ```
 PostScript output is put to `stdout`.
 A PDF can be generated using `ps2pdf`.

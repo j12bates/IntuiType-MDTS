@@ -16,10 +16,14 @@
     limitations under the License.
 =end
 
-# TODO - Measure Indentation when Handling a Line, Higher-Order List Items
+# TODO - Separate List Types, Clean Up Line Handler, Normalize Indentation Handling
+# TODO - Implement Alignment as a Style Setting
+# TODO - Raise Exceptions when Style Settings are Missing
 
-# TODO - Add Page Size and Document Standards to Stylesheet
+# TODO - Add Page Size and Document Standards to Stylesheet/Something else
 # TODO - Anchors (actually just URIs with an icon ig)
+# TODO - Headers, Footers, Page Numbers
+# TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
 
 # PostScript Version
 puts "%!PS-Adobe-3.0"
@@ -45,6 +49,10 @@ ps_template.each do |line|
 end
 puts
 
+# Current Block Type/Order
+@cur_block_type = 0
+@cur_block_order = 0
+
 # Stylesheet
 require "json"
 
@@ -56,6 +64,77 @@ end
 
 @stylesheet = JSON.parse(File.read(File.join(__dir__, "res", stylesheet_file + ".json")))
 
+# Get Currently Applicable Style Setting
+def get_style(key)
+
+    # All Settings Specific to the Block Type
+    styles_block = @stylesheet[@cur_block_type.to_s]
+
+    # Get the Setting we Want, and other things
+    if (styles_block.is_a? Hash)
+        style_block = styles_block[key]
+
+        style_block_highest = styles_block[key + "_highest"]
+        style_block_scale = styles_block[key + "_scale"]
+        style_block_scale_limit = styles_block[key + "_scale_limit"]
+        style_block_list = styles_block[key + "_list"]
+        style_block_list_loop = styles_block[key + "_list_loop"]
+    end
+
+    # Global Default Setting
+    style_default = @stylesheet[key]
+
+    offset = 0
+
+    # Is there a setting for the highest order?
+    if !style_block_highest.nil?
+        offset += 1
+
+        # If so, and we're on the highest order, use it
+        if @cur_block_order == 0
+            return style_block_highest
+
+        # Otherwise, is there a scale and can we use it?
+        elsif !style_block_scale.nil? && (style_block_highest.is_a? Numeric)
+
+            # If so and there's no limit, use it
+            if style_block_scale_limit.nil?
+                return style_block_highest * style_block_scale ** @cur_block_order
+
+            # Otherwise, if we're within the limit, use it
+            elsif @cur_block_order - offset < style_block_scale_limit
+                return style_block_highest * style_block_scale ** @cur_block_order
+
+            end
+            offset += style_block_scale_limit
+
+        end
+    end
+
+    # Is there a list of settings?
+    if !style_block_list.nil?
+
+        # If so and it's long enough, use the item at this order
+        if @cur_block_order - offset < style_block_list.length
+            return style_block_list[@cur_block_order - offset]
+
+        # Otherwise, if it's supposed to loop, we can still use it
+        elsif style_block_list_loop
+            return style_block_list[(@cur_block_order - offset) % style_block_list.length]
+
+        end
+    end
+
+    # If there's a setting specific to this block type at all, use it
+    if !style_block.nil?
+        return style_block
+    end
+
+    # Otherwise, just use the global default
+    return style_default
+
+end
+
 # Fonts
 @italic = false
 @bold = false
@@ -64,17 +143,21 @@ end
 # Get Font Name
 def font_name()
 
-    # List of Font Names
-    font_names = @stylesheet["font_names"]
+    # If there is one font name, return it
+    single_name = get_style("font_name")
+    if !single_name.nil?
+        name = single_name
 
-    # Heading
-    if @cur_block_type == :heading && @stylesheet["heading"]["font_names"]
-        font_names = @stylesheet["heading"]["font_names"]
+    # Otherwise, get a font from the list
+    else
+        font_names = get_style("font_names")
+        name = font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
+
     end
 
-    # Get Name and Format as PostScript Name
-    name = font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
+    # Format as PostScript Name
     return "/" + name + " "
+
 end
 
 # Parameters
@@ -159,30 +242,25 @@ def place_word(word)
 
 end
 
-# Current Block Type
-@cur_block_type = 0
-
-# Heading Order
-@heading_order = 0
-
 # List Index
 @cur_list_index = false
 @given_list_index = 0
-@list_index_font_name = 0
+@list_index_font_name = ""
 
 # List Order
 @list_order_indents = [0]
 
-# Initial Paragraph Space
+# Don't add space to the first block
 @start_paragraph_space = false
 
 # Add Words
-def add_words(block_type, words)
+def add_words(block_type, block_order, words)
 
     # Handle a New Block
-    if block_type != @cur_block_type
+    if block_type != @cur_block_type || block_order != @cur_block_order
         end_block
         @cur_block_type = block_type
+        @cur_block_order = block_order
         start_block
     end
 
@@ -207,16 +285,16 @@ def handle_line(line)
         if @cur_block_type == :code_block
             end_block
         else
-            add_words(:code_block, [])
+            add_words(:code_block, 0, [])
         end
 
     # Handle Line in Code Block
     elsif @cur_block_type == :code_block
-        print "/" + @stylesheet["font_names"][4] + " "
+        print font_name
         if words.length > 0
             words[0].insert(0, " " * spaces)
         end
-        add_words(:code_block, words)
+        add_words(:code_block, 0, words)
         puts "false 0 PrintParagraphAligned"
 
     # Empty Line
@@ -225,15 +303,15 @@ def handle_line(line)
 
     # Heading
     elsif words[0].count("#") == words[0].length && words[0].length >= 1 && words[0].length <= 6
-        @heading_order = words[0].length - 1
+        order = words[0].length - 1
         words.slice!(0)
-        add_words(:heading, words)
+        add_words(:heading, order, words)
         end_block
 
     # Blockquote
     elsif words[0] == ">"
         words.slice!(0)
-        add_words(:block_quote, words)
+        add_words(:block_quote, 0, words)
 
     # Ordered List Item
     elsif words[0][-1] == "." && (Integer(words[0][0..-2]) rescue false)
@@ -247,7 +325,7 @@ def handle_line(line)
             if @list_order_indents.length == 0 then break end
         end
         @list_order_indents.push(spaces)
-        add_words(:list_item, words)
+        add_words(:list_item, @list_order_indents.length - 1, words)
 
     # Unordered List Item
     elsif words[0] == "-" || words[0] == "*" || words[0] == "+"
@@ -260,7 +338,7 @@ def handle_line(line)
             if @list_order_indents.length == 0 then break end
         end
         @list_order_indents.push(spaces)
-        add_words(:list_item, words)
+        add_words(:list_item, @list_order_indents.length - 1, words)
 
     # Horizontal Rule
     elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
@@ -270,90 +348,62 @@ def handle_line(line)
 
     # Handle Continuing List Item
     elsif @cur_block_type == :list_item
-        add_words(:list_item, words)
+        add_words(:list_item, @list_order_indents.length - 1, words)
 
     # Paragraph
     else
-        add_words(:paragraph, words)
+        add_words(:paragraph, 0, words)
 
     end
 
 end
 
-# Start New Section
-def new_section(new_column_portions)
+# Set Parameters
+def set_parameters(font_size, leading, column_portions)
+
+    # If everything's the same, don't bother with a new section
+    if font_size == @font_size && leading == @leading && column_portions == @column_portions then return end
 
     # Font Size and Leading
-    print @font_size.to_s + " " + @leading.to_s + " "
+    print font_size.to_s + " " + leading.to_s + " "
 
     # Preserve Columns if Possible
-    if new_column_portions == @column_portions
+    if column_portions == @column_portions
         print "0 "
     else
 
         # PostScript Array
         print "[ "
-        for i in new_column_portions
+        for i in column_portions
             print i.to_s + " "
         end
         print "] "
 
     end
 
-    # Keep Track of Columns
-    @column_portions = new_column_portions
-
     # Procedure
     puts "NewSection "
+
+    # Keep Track of New Parameters
+    @font_size = font_size
+    @leading = leading
+    @column_portions = column_portions
 
 end
 
 # Start a Block
 def start_block()
 
+    # Update Parameters
+    set_parameters(get_style("font_size"), get_style("leading"), get_style("column_portions"))
+
     # Paragraph Space if Needed
-    if (@stylesheet["paragraph_space"] || @cur_block_type == :heading ) && @start_paragraph_space
+    if get_style("paragraph_space") && @start_paragraph_space
         print "NextLine "
     end
-    @start_paragraph_space = true
 
-    # Deal with Parameters
-    if @cur_block_type == :heading
-
-        # Update Font Size if Necessary
-        if @stylesheet["heading"]["font_size"] && @stylesheet["heading"]["font_size_order_scale"]
-            @font_size = @stylesheet["heading"]["font_size"] * @stylesheet["heading"]["font_size_order_scale"] ** @heading_order
-        else @font_size = @stylesheet["font_size"]
-        end
-
-        # Update Leading if Necessary
-        if @stylesheet["heading"]["leading"]
-            @leading = @stylesheet["heading"]["leading"]
-        else @leading = @stylesheet["leading"]
-        end
-
-        # Update Columns if Necessary and Start New Section
-        if @stylesheet["heading"]["column_portions"] && (@heading_order == 0 || @stylesheet["heading"]["column_order_persist"])
-            new_section(@stylesheet["heading"]["column_portions"])
-        else new_section(@stylesheet["column_portions"])
-        end
-
-        # Don't Space the Next Block
-        @start_paragraph_space = false
-
-    else
-
-        # Update Parameters if Necessary
-        if @font_size != @stylesheet["font_size"] || @leading != @stylesheet["leading"] || @column_portions != @stylesheet["column_portions"]
-
-            # Start New Section
-            @font_size = @stylesheet["font_size"]
-            @leading = @stylesheet["leading"]
-            new_section(@stylesheet["column_portions"])
-
-        end
-
-    end
+    # The next block can be spaced, unless this is a heading
+    @start_paragraph_space = @cur_block_type != :heading
 
     # Deal with List Index
     if @cur_block_type == :list_item
@@ -374,7 +424,7 @@ def start_block()
     end
 
     # Starting Font Name
-    if @cur_font_type != :code_block
+    if @cur_block_type != :code_block
         print font_name
     end
 
@@ -388,19 +438,20 @@ def end_block()
         when :block_quote
             puts "PrintBlockQuote"
         when :heading
-            puts "false " + (@stylesheet["heading"]["alignment"] == "center" && (@heading_order == 0 || @stylesheet["heading"]["alignment_order_persist"]) ? "1" : "0") + " PrintParagraphAligned"
+            puts "false " + (get_style("alignment") == "center" ? "1" : "0") + " PrintParagraphAligned"
         when :list_item
             if @cur_list_index
-                puts @list_index_font_name + "(" + @cur_list_index.to_s + ") " + (@list_order_indents.length - 1).to_s + " PrintOrderedListItem"
+                puts @list_index_font_name + "(" + @cur_list_index.to_s + ") " + @cur_block_order.to_s + " PrintOrderedListItem"
             else
-                puts (@list_order_indents.length - 1).to_s + " PrintBulletListItem"
+                puts @cur_block_order.to_s + " PrintBulletListItem"
             end
         when :paragraph
             puts "PrintParagraph"
     end
 
-    # Prevent this from Recurring
+    # Reset to Prevent this from Recurring
     @cur_block_type = 0
+    @cur_block_order = 0
 
 end
 

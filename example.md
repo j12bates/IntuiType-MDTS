@@ -21,22 +21,25 @@ Paragraph spacing is used in addition to indentation to emphasize the change in 
 > Block-quotes are generally used when a quote or excerpt is four lines or more.
 
 ### Lists
-1. This is the first item in a list.
+
+#### Numbered Lists
+1. This is the first item in a numbered list.
 It should be preceded by the number one, and every line should be indented.
-2. This is the second item in a list.
+2. This is the second item in a numbered list.
 Lists like these are generally used in memoranda for brevity and ease in reading.
-3. This is the third item in a list.
+3. This is the third item in a numbered list.
 Three is generally the minimum number of items in a list,
 as having fewer items will make the writing simple enough to be understood without the context of one.
 
-- This is an item in a list.
-The previous list is actually called a **numbered list,** and this is called a **bullet list.**
+#### Bullet Lists
+- This is an item in a bullet list.
+Bullet lists differ from numbered lists in that items have no particular order.
 - This is another item in a bullet list.
-It should be preceded by a dot, and as with ordered lists, every line should be indented.
+As with ordered lists, every line should be indented.
   - This is an item in a lower-order list.
   - Lower-order items should be indented further than higher-order items.
 - This is another item in a bullet list.
-Bullet lists differ from numbered lists in that items have no particular order.
+Since items have no particular order, numbers aren't needed, and so dots or "bullets" are used in their place.
 
 ### Columns
 The entirety of this document should be written in two columns, with the exception of the first heading.
