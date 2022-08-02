@@ -18,9 +18,8 @@
 
 =end
 
-# TODO - Raise Exceptions when Style Settings are Missing
+# TODO - Raise Exceptions when Style Settings are Missing/Wrong
 
-# TODO - Add Page Size and Document Standards to Stylesheet/Something else
 # TODO - Anchors (actually just URIs with an icon ig)
 # TODO - Headers, Footers, Page Numbers
 # TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
@@ -36,9 +35,97 @@ puts "%     ps2pdf FILENAME.ps FILENAME.pdf"
 puts "% Direct PDF output has not yet been implemented."
 puts
 
+# Stylesheet
+require "json"
+
+stylesheet_file = "default"
+
+if ARGV.length >= 2
+    stylesheet_file = ARGV[1]
+end
+
+@stylesheet = JSON.parse(File.read(File.join(__dir__, "res", stylesheet_file + ".json")))
+
+# Unit Conversion Procedures
+puts "/in { 72 mul } def"
+puts "/mm { 2.83465 mul } def"
+
 # Page Size
-paper_size = "letter"
-puts "/PaperSize /" + paper_size + " def"
+page_units = "in"
+page_size = @stylesheet["page"]["size"]
+page_size_dimensions = {"width" => 8.5, "height" => 11}
+
+# Handle Preset Size
+if (page_size.is_a? String)
+    case page_size
+        when "letter"
+            page_units = "in"
+            page_size_dimensions["width"] = 8.5
+            page_size_dimensions["height"] = 11
+        when "a4"
+            page_units = "mm"
+            page_size_dimensions["width"] = 210
+            page_size_dimensions["height"] = 297
+    end
+
+# Handle Custom Size
+elsif (page_size.is_a? Hash) && (page_size["width"].is_a? Numeric) && (page_size["height"].is_a? Numeric) && (page_size["units"] == "in" || page_size["units"] == "mm")
+    page_size_dimensions = page_size
+    page_units = page_size["units"]
+
+end
+
+puts "/PageWidth " + page_size_dimensions["width"].to_s + " " + page_units + " def"
+puts "/PageHeight " + page_size_dimensions["height"].to_s + " " + page_units + " def"
+
+# Standard Length (used in default margin, indent, and gutter)
+case page_units
+    when "in"
+        page_default = 1.0
+    when "mm"
+        page_default = 25.0
+end
+
+# Page Margin
+page_margin = @stylesheet["page"]["margin"]
+page_margin_sides = {"left" => page_default, "right" => page_default, "top" => page_default, "bottom" => page_default}
+
+# Handle Constant Margin
+if (page_margin.is_a? Numeric)
+    page_margin_sides.keys.each do |side|
+        page_margin_sides[side] = page_margin
+    end
+
+# Handle Varying Margin
+elsif (page_margin.is_a? Hash)
+
+    # X and Y
+    if (page_margin["x"].is_a? Numeric) && (page_margin["y"].is_a? Numeric)
+        page_margin_sides["left"] = page_margin_sides["right"] = page_margin["x"]
+        page_margin_sides["top"] = page_margin_sides["bottom"] = page_margin["y"]
+
+    # All Sides
+    elsif (page_margin["left"].is_a? Numeric) && (page_margin["right"].is_a? Numeric) && (page_margin["top"].is_a? Numeric) && (page_margin["bottom"].is_a? Numeric)
+        page_margin_sides = page_margin
+
+    end
+
+end
+
+puts "/MarginLeft " + page_margin_sides["left"].to_s + " " + page_units + " def"
+puts "/MarginRight " + page_margin_sides["right"].to_s + " " + page_units + " def"
+puts "/MarginTop " + page_margin_sides["top"].to_s + " " + page_units + " def"
+puts "/MarginBottom " + page_margin_sides["bottom"].to_s + " " + page_units + " def"
+
+# Other Document Standards
+standard_indent = @stylesheet["page"]["indent"]
+standard_gutter = @stylesheet["page"]["gutter"]
+
+unless (standard_indent.is_a? Numeric) then standard_indent = page_default / 2 end
+unless (standard_gutter.is_a? Numeric) then standard_gutter = page_default / 2 end
+
+puts "/Indent " + standard_indent.to_s + " " + page_units + " def"
+puts "/Gutter " + standard_gutter.to_s + " " + page_units + " def"
 
 # PostScript Template
 ps_template = File.open(File.join(__dir__, "template.ps"), "r")
@@ -53,22 +140,11 @@ puts
 @cur_block_type = 0
 @cur_block_order = 0
 
-# Stylesheet
-require "json"
-
-stylesheet_file = "default"
-
-if ARGV.length >= 2
-    stylesheet_file = ARGV[1]
-end
-
-@stylesheet = JSON.parse(File.read(File.join(__dir__, "res", stylesheet_file + ".json")))
-
-# Get Currently Applicable Style Setting
+# Get Currently Applicable Content Style Setting
 def get_style(key)
 
     # All Settings Specific to the Block Type
-    styles_block = @stylesheet[@cur_block_type.to_s]
+    styles_block = @stylesheet["content"][@cur_block_type.to_s]
 
     # Get the Setting we Want, and other things
     if (styles_block.is_a? Hash)
@@ -82,7 +158,7 @@ def get_style(key)
     end
 
     # Global Default Setting
-    style_default = @stylesheet[key]
+    style_default = @stylesheet["content"][key]
 
     offset = 0
 

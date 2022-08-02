@@ -1,32 +1,41 @@
 {
 
-    "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
-    "font_size": 12,
-    "leading": 0.15,
-    "column_portions": [1, 1],
-    "align": "justify",
-    "indent": "not_after_heading",
-    "space_above": "not_after_heading",
-
-    "heading": {
-        "font_names": ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
-        "font_size_highest": 24,
-        "font_size_scale": 0.8,
-        "leading": 0.5,
-        "column_portions_highest": [1],
-        "align_highest": "center",
-        "align": "left",
-        "indent": "never",
-        "space_above": "not_after_heading"
+    "page": {
+        "size": "letter",
+        "margin": 1,
+        "indent": 0.5,
+        "gutter": 0.5
     },
 
-    "code_block": {
-        "font_name": "Courier"
-    },
+    "content": {
+        "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
+        "font_size": 12,
+        "leading": 0.15,
+        "column_portions": [1, 1],
+        "align": "justify",
+        "indent": "not_after_heading",
+        "space_above": "not_after_heading",
 
-    "unordered_list_item": {
-        "space_above_highest": "not_after_heading",
-        "space_above": "never"
+        "heading": {
+            "font_names": ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
+            "font_size_highest": 24,
+            "font_size_scale": 0.8,
+            "leading": 0.5,
+            "column_portions_highest": [1],
+            "align_highest": "center",
+            "align": "left",
+            "indent": "never",
+            "space_above": "not_after_heading"
+        },
+
+        "code_block": {
+            "font_name": "Courier"
+        },
+
+        "unordered_list_item": {
+            "space_above_highest": "not_after_heading",
+            "space_above": "never"
+        }
     }
 
 }

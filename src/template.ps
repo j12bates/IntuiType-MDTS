@@ -14,29 +14,7 @@
 %   See the License for the specific language governing permissions and
 %   limitations under the License.
 
-% Unit Conversions
-/in { 72 mul } def
-/mm { 2.83465 mul } def
-
-% Set Page Dimensions from Paper Size
-PaperSize /letter eq {
-    /PageWidth 8.5 in def
-    /PageHeight 11 in def
-} if
-
-PaperSize /a4 eq {
-    /PageWidth 210 mm def
-    /PageHeight 297 mm def
-} if
-
 << /PageSize [ PageWidth PageHeight ] >> setpagedevice
-
-
-% Document Standards
-/MarginX 1 in def
-/MarginY 1 in def
-/Indent 0.5 in def
-/Gutter 0.5 in def
 
 % Section Parameters
 /FontHeight 12 def
@@ -75,8 +53,8 @@ PaperSize /a4 eq {
 % - --> width x y
 /Line {
 
-    PageWidth MarginX 2 mul sub                                     % available                     Total space between margins
-    MarginX                                                         % available x                   X-value of left margin
+    PageWidth MarginLeft MarginRight add sub                        % available                     Total space between margins
+    MarginLeft                                                      % available x                   X-value of left margin
 
     pageLine type /nametype ne                                      % available x contentMode       If we're dealing with content, deal with columns and padding
     {
@@ -95,7 +73,7 @@ PaperSize /a4 eq {
 
         % This part finds the X-value of the start of the line
         0 0 1 pageColumn 1 sub { ColumnPortions exch get add } for  % ptnWidth width lPtns          Total portions in columns to the left
-        2 index mul pageColumn Gutter mul add MarginX add           % ptnWidth width x              X-value of column (add columns and gutters to the left)
+        2 index mul pageColumn Gutter mul add MarginLeft add        % ptnWidth width x              X-value of column (add columns, gutters, and margin to the left)
         PaddingX add                                                % ptnWidth width x              Account for padding
 
         3 -1 roll pop                                               % width x
@@ -103,7 +81,7 @@ PaperSize /a4 eq {
         % This part finds the Y-value of the line
         TempSectionOffset SectionOffset gt                          % width x tempGreater
         { TempSectionOffset } { SectionOffset } ifelse              % width x offset                Use the temporary offset if it's greater
-        MarginY add PageHeight exch sub pageLine                    % width x top line              Top margin/top of section and line number
+        MarginTop add PageHeight exch sub pageLine                  % width x top line              Top margin/top of section and line number
         FontHeight Leading 1 add mul                                % width x top line spacing      Spacing per line
         mul FontHeight add sub                                      % width x y                     Pointer is at bottom of line
 
@@ -112,10 +90,10 @@ PaperSize /a4 eq {
         % This part finds the Y-value of the header/footer line
         pageLine /header eq                                         % width x header                Is this the header?
         {
-            PageHeight MarginY sub                                  % width x top                   If so, top margin
+            PageHeight MarginTop sub                                % width x top                   If so, top margin
             FontHeight Leading 1 add mul add                        % width x y                     Go up one line
         } {
-            MarginY                                                 % width x bottom                Otherwise, bottom margin
+            MarginBottom                                            % width x bottom                Otherwise, bottom margin
             FontHeight Leading 2 add mul sub                        % width x y                     Go down one line (pointer is at bottom of line)
         } ifelse
 
@@ -128,7 +106,7 @@ PaperSize /a4 eq {
 
     /pageLine pageLine 1 add def                                    %                               Next line
 
-    Line MarginY lt                                                 % width x overflow              Is this line in the bottom margin?
+    Line MarginBottom lt                                            % width x overflow              Is this line in the bottom margin?
     { NextColumn } if                                               % width x                       If so, next column
 
     pop pop                                                         %
@@ -211,7 +189,7 @@ PaperSize /a4 eq {
 
     pageColumn 0 eq presColumns or                                  % FontHeight Leading changeColumns      Have we either used only one column or are using the same columns?
     {
-        Line FontHeight add PageHeight MarginY sub exch sub         % FontHeight Leading width x y          If so, calculate offset from the top of this line
+        Line FontHeight add PageHeight MarginTop sub exch sub       % FontHeight Leading width x y          If so, calculate offset from the top of this line
         presColumns { /TempSectionOffset } { /SectionOffset } ifelse% FontHeight Leading width x y /var     If we're preserving columns, we'll only be offsetting until the next column
         exch def pop pop                                            % FontHeight Leading                    We can start the section where we are
     } {
