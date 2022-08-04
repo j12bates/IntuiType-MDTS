@@ -32,9 +32,16 @@
             "font_name": "Courier"
         },
 
+        "ordered_list_item": {
+            "numeral_highest": "numeral",
+            "numeral": "letter_downcase"
+        },
+
         "unordered_list_item": {
             "space_above_highest": "not_after_heading",
-            "space_above": "never"
+            "space_above": "never",
+            "bullet_list": ["bullet", "star", "arrow"],
+            "bullet_list_loop": true
         }
     }
 

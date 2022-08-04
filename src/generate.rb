@@ -20,9 +20,10 @@
 
 # TODO - Raise Exceptions when Style Settings are Missing/Wrong
 
-# TODO - Anchors (actually just URIs with an icon ig)
-# TODO - Headers, Footers, Page Numbers
+# TODO - Headers, Footers, Page Numbers, Draw After Content is Done
 # TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
+
+# TODO - Reorganize Ruby Code into Multiple Source Files
 
 # PostScript Version
 puts "%!PS-Adobe-3.0"
@@ -323,6 +324,8 @@ end
 @given_list_index = 0
 @list_index_font_name = ""
 
+@list_item_prefix = ""
+
 # Indentation Levels
 @indent_levels = [0]
 
@@ -488,7 +491,7 @@ def start_block()
     end
     @first_block = false
 
-    # Deal with List Index
+    # Deal with Ordered List Index
     if @cur_block_type == :ordered_list_item
 
         # Get rid of any lower-order list indices
@@ -501,10 +504,38 @@ def start_block()
         # Otherwise, use the index given
         else
             @list_indices[@cur_block_order] = @given_list_index
+
         end
 
+        # Item Prefix
+        index = @list_indices[@cur_block_order]
+        case get_style("numeral")
+            when "letter_upcase"
+                @list_item_prefix = ("A".."Z").to_a[index % 26 - 1]
+            when "letter_downcase"
+                @list_item_prefix = ("a".."z").to_a[index % 26 - 1]
+            else
+                @list_item_prefix = index.to_s
+        end
+
+    # Deal with Unordered List
+    elsif @cur_block_type == :unordered_list_item
+
+        # Item Prefix
+        case get_style("bullet")
+            when "star", "asterisk"
+                @list_item_prefix = "\\052"
+            when "arrow"
+                @list_item_prefix = "\\256"
+            when "arrow_double"
+                @list_item_prefix = "\\336"
+            else
+                @list_item_prefix = "\\267"
+        end
+
+
     # If the list has ended, don't keep track of the index or order
-    elsif @cur_block_type != :unordered_list_item
+    else
         @list_indices = []
     end
 
@@ -554,9 +585,9 @@ def end_block()
         when :heading
             puts print_proc
         when :ordered_list_item
-            puts @list_index_font_name + "(" + @list_indices[@cur_block_order].to_s + ") " + @cur_block_order.to_s + " PrintOrderedListItem"
+            puts @list_index_font_name + "(" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintOrderedListItem"
         when :unordered_list_item
-            puts @cur_block_order.to_s + " PrintBulletListItem"
+            puts "(" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintBulletListItem"
         when :paragraph
             puts print_proc
     end
