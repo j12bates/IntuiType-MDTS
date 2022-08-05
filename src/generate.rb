@@ -319,13 +319,6 @@ def place_word(word)
 
 end
 
-# List Index
-@list_indices = []
-@given_list_index = 0
-@list_index_font_name = ""
-
-@list_item_prefix = ""
-
 # Indentation Levels
 @indent_levels = [0]
 
@@ -401,16 +394,18 @@ def handle_line(line)
     elsif words[0][-1] == "." && (Integer(words[0][0..-2]) rescue false)
         end_block
         words[0].slice!(-1)
-        @given_list_index = Integer(words[0]) rescue false
+        add_words(:list_item, indent_level, [])
+        @list_item_prefix = next_list_item_prefix(Integer(words[0]))
         words.slice!(0)
-        @list_index_font_name = font_name
-        add_words(:ordered_list_item, indent_level, words)
+        add_words(:list_item, indent_level, words)
 
     # Unordered List Item
     elsif words[0] == "-" || words[0] == "*" || words[0] == "+"
         end_block
+        add_words(:list_item, indent_level, [])
+        @list_item_prefix = next_list_item_prefix(false)
         words.slice!(0)
-        add_words(:unordered_list_item, indent_level, words)
+        add_words(:list_item, indent_level, words)
 
     # Horizontal Rule
     elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
@@ -419,7 +414,7 @@ def handle_line(line)
         @block_heading = true
 
     # Handle Continuing List Item
-    elsif @cur_block_type == :ordered_list_item || @cur_block_type == :unordered_list_item
+    elsif @cur_block_type == :list_item
         add_words(@cur_block_type, @cur_block_order, words)
 
     # Paragraph
@@ -463,6 +458,60 @@ def set_parameters(font_size, leading, column_portions)
 
 end
 
+# List Item Prefix
+@list_indices = []
+@list_item_prefix = ""
+@list_item_prefix_symbol = false
+
+# Get Next List Item Prefix
+def next_list_item_prefix(index)
+
+    # Get rid of any lower-order list indices
+    @list_indices = @list_indices[0..@cur_block_order]
+
+    # If the list is ordered and continuing, increment the index
+    if @list_indices[@cur_block_order] && index
+        @list_indices[@cur_block_order] += 1
+        index = @list_indices[@cur_block_order]
+
+    # Otherwise, use the index given
+    else
+        @list_indices[@cur_block_order] = index
+
+    end
+
+    # Whether this Prefix is a Symbol Character
+    @list_item_prefix_symbol = !index
+
+    # Ordered List Item Prefix
+    if index
+        case get_style("numeral")
+            when "letter_upcase"
+                prefix = ("A".."Z").to_a[index % 26 - 1]
+            when "letter_downcase"
+                prefix = ("a".."z").to_a[index % 26 - 1]
+            else
+                prefix = index.to_s
+        end
+        return prefix + "."
+
+    # Unordered List Item Prefix
+    else
+        case get_style("bullet")
+            when "star", "asterisk"
+                return "\\052"
+            when "arrow"
+                return "\\256"
+            when "arrow_double"
+                return "\\336"
+            else
+                return "\\267"
+        end
+
+    end
+
+end
+
 # Status Variables (for spacing and indentation)
 @first_block = true
 @block_heading = false
@@ -479,63 +528,20 @@ def start_block()
     @block_heading = @cur_block_type == :heading
 
     # Vertical Spacing
-    if !@first_block
+    unless @first_block
         case get_style("space_above")
             when "always"
                 print "NextLine "
             when "not_after_heading"
-                if !@prev_block_heading
+                unless @prev_block_heading
                     print "NextLine "
                 end
         end
     end
     @first_block = false
 
-    # Deal with Ordered List Index
-    if @cur_block_type == :ordered_list_item
-
-        # Get rid of any lower-order list indices
-        @list_indices = @list_indices[0..@cur_block_order]
-
-        # If the list is continuing, increment the index
-        if @list_indices[@cur_block_order]
-            @list_indices[@cur_block_order] += 1
-
-        # Otherwise, use the index given
-        else
-            @list_indices[@cur_block_order] = @given_list_index
-
-        end
-
-        # Item Prefix
-        index = @list_indices[@cur_block_order]
-        case get_style("numeral")
-            when "letter_upcase"
-                @list_item_prefix = ("A".."Z").to_a[index % 26 - 1]
-            when "letter_downcase"
-                @list_item_prefix = ("a".."z").to_a[index % 26 - 1]
-            else
-                @list_item_prefix = index.to_s
-        end
-
-    # Deal with Unordered List
-    elsif @cur_block_type == :unordered_list_item
-
-        # Item Prefix
-        case get_style("bullet")
-            when "star", "asterisk"
-                @list_item_prefix = "\\052"
-            when "arrow"
-                @list_item_prefix = "\\256"
-            when "arrow_double"
-                @list_item_prefix = "\\336"
-            else
-                @list_item_prefix = "\\267"
-        end
-
-
-    # If the list has ended, don't keep track of the index or order
-    else
+    # If a list has ended, don't keep track of the index or order
+    if @cur_block_type != :list_item
         @list_indices = []
     end
 
@@ -578,16 +584,19 @@ end
 # End a Block
 def end_block()
 
+    # Reset Font
+    @italic = false
+    @bold = false
+    @mono = false
+
     # Printing Procedure
     case @cur_block_type
         when :block_quote
             puts "PrintBlockQuote"
         when :heading
             puts print_proc
-        when :ordered_list_item
-            puts @list_index_font_name + "(" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintOrderedListItem"
-        when :unordered_list_item
-            puts "(" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintBulletListItem"
+        when :list_item
+            puts (@list_item_prefix_symbol ? "/Symbol" : font_name) + " (" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintListItem"
         when :paragraph
             puts print_proc
     end
