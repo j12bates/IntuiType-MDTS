@@ -25,7 +25,7 @@ Headings can be level 1 through level 6.
 The alternate syntax using `=` or `-` characters below a line is not supported.
 
 ### Horizontal Rules
-Horizontal rules are denoted by 3 or more hyphens (`-`) on a line by themselves.
+Horizontal rules are denoted by 3 or more hyphens (`---`) on a line by themselves.
 
 ```markdown
 ---
@@ -82,7 +82,7 @@ Unordered list items are denotes by a hyphen (`-`), asterisk (`\*`), or plus-sig
 ```
 
 ### Code Blocks
-Code Blocks are started and closed by a code fence, each made up of three backticks (`\`\`\``).
+Code Blocks are started and closed by a code fence, each made up of three backticks (```` ``` ````).
 Any existing inline formatting settings are ignored within a code block, and they cannot be changed.
 All code blocks are level 1.
 
