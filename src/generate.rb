@@ -18,12 +18,16 @@
 
 =end
 
-# TODO - Raise Exceptions when Style Settings are Missing/Wrong
+# TODO - Clear Up Behaviour Concerning Missing Stylesheet Settings
 
 # TODO - Headers, Footers, Page Numbers, Draw After Content is Done
 # TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
+# TODO - Footnotes
 
 # TODO - Reorganize Ruby Code into Multiple Source Files
+
+# TODO - Images/Graphics
+# TODO - PDF Output
 
 # PostScript Version
 puts "%!PS-Adobe-3.0"
@@ -175,7 +179,7 @@ def get_style(key)
         elsif !style_block_scale.nil? && (style_block_highest.is_a? Numeric)
 
             # If so and there's no limit, use it
-            if style_block_scale_limit.nil?
+            unless (style_block_scale_limit.is_a? Integer)
                 return style_block_highest * style_block_scale ** @cur_block_order
 
             # Otherwise, if we're within the limit, use it
@@ -251,10 +255,6 @@ def update_font(word, left)
     pos = left ? 0 : -1
     while word.length != 0
         case word[pos]
-
-            # Escaped Character
-            when "\\"
-                pos += left ? 2 : -2
 
             # (Double) Emphasis
             when "*"
@@ -388,6 +388,7 @@ def handle_line(line)
     # Blockquote
     elsif words[0] == ">"
         words.slice!(0)
+        if words.length == 0 then end_block end
         add_words(:block_quote, 0, words)
 
     # Ordered List Item
@@ -396,6 +397,7 @@ def handle_line(line)
         words[0].slice!(-1)
         add_words(:list_item, indent_level, [])
         @list_item_prefix = next_list_item_prefix(Integer(words[0]))
+        @list_item_prefix_font_name = font_name
         words.slice!(0)
         add_words(:list_item, indent_level, words)
 
@@ -404,6 +406,7 @@ def handle_line(line)
         end_block
         add_words(:list_item, indent_level, [])
         @list_item_prefix = next_list_item_prefix(false)
+        @list_item_prefix_font_name = "/Symbol"
         words.slice!(0)
         add_words(:list_item, indent_level, words)
 
@@ -461,7 +464,7 @@ end
 # List Item Prefix
 @list_indices = []
 @list_item_prefix = ""
-@list_item_prefix_symbol = false
+@list_item_prefix_font_name = ""
 
 # Get Next List Item Prefix
 def next_list_item_prefix(index)
@@ -486,9 +489,9 @@ def next_list_item_prefix(index)
     # Ordered List Item Prefix
     if index
         case get_style("numeral")
-            when "letter_upcase"
+            when "alph_upcase"
                 prefix = ("A".."Z").to_a[index % 26 - 1]
-            when "letter_downcase"
+            when "alph_downcase"
                 prefix = ("a".."z").to_a[index % 26 - 1]
             else
                 prefix = index.to_s
@@ -584,11 +587,6 @@ end
 # End a Block
 def end_block()
 
-    # Reset Font
-    @italic = false
-    @bold = false
-    @mono = false
-
     # Printing Procedure
     case @cur_block_type
         when :block_quote
@@ -596,7 +594,7 @@ def end_block()
         when :heading
             puts print_proc
         when :list_item
-            puts (@list_item_prefix_symbol ? "/Symbol" : font_name) + " (" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintListItem"
+            puts @list_item_prefix_font_name + " (" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintListItem"
         when :paragraph
             puts print_proc
     end

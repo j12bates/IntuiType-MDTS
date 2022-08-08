@@ -35,8 +35,8 @@
         "list_item": {
             "space_above_highest": "not_after_heading",
             "space_above": "never",
-            "numeral_highest": "numeral",
-            "numeral": "letter_downcase",
+            "numeral_highest": "arabic",
+            "numeral": "alph_downcase",
             "bullet_list": ["bullet", "star", "arrow"],
             "bullet_list_loop": true
         }
