@@ -179,7 +179,7 @@ def get_style(key)
         elsif !style_block_scale.nil? && (style_block_highest.is_a? Numeric)
 
             # If so and there's no limit, use it
-            unless (style_block_scale_limit.is_a? Integer)
+            if !(style_block_scale_limit.is_a? Integer)
                 return style_block_highest * style_block_scale ** @cur_block_order
 
             # Otherwise, if we're within the limit, use it
