@@ -141,6 +141,47 @@ ps_template.each do |line|
 end
 puts
 
+# Header and Footer
+["header", "footer"].each do |header_footer|
+
+    settings = @stylesheet["page"][header_footer]
+
+    # Check Required Properties
+    if settings.nil? then next end
+    unless (settings["font_size"].is_a? Numeric) && (settings["leading"].is_a? Numeric) then next end
+
+    # Procedures for Each Side
+    ["left", "center", "right"].each do |side|
+
+        side = settings[side]
+        print "{ "
+
+        # Check if there is a valid setting
+        if !side.nil? && (side["font_name"].is_a? String)
+            print "/" + side["font_name"] + " "
+
+            # Special Text
+            if (side["special"].is_a? String)
+                case side["special"]
+                    when "PAGE_NUMBER"
+                        print "documentPage (    ) cvs "
+                end
+            end
+
+        end
+
+        print "} "
+
+    end
+
+    # Font Size and Leading
+    print settings["font_size"].to_s + " " + settings["leading"].to_s + " "
+
+    # Procedure to Update Header/Footer
+    puts "New" + header_footer.capitalize
+
+end
+
 # Current Block Type/Order
 @cur_block_type = 0
 @cur_block_order = 0

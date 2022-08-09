@@ -54,13 +54,11 @@
 /Line {
 
     PageWidth MarginLeft MarginRight add sub                        % available                     Total space between margins
-    MarginLeft                                                      % available x                   X-value of left margin
 
-    pageLine type /nametype ne                                      % available x contentMode       If we're dealing with content, deal with columns and padding
+    pageLine type /nametype ne                                      % available contentMode         If we're dealing with content, deal with columns and padding
     {
 
         % This part finds the width of each portion of column distribution
-        pop                                                         % available                     This isn't the X-value we need
         ColumnPortions length 1 sub Gutter mul sub                  % available                     Account for gutters
         ColumnPortions aload pop                                    % available ptn..               All portion values
         ColumnPortions length 1 sub { add } repeat                  % available ptns                Sum them up
@@ -87,7 +85,9 @@
 
     } {
 
-        % This part finds the Y-value of the header/footer line
+        % This part finds the position of the header/footer line
+        MarginLeft                                                  % width x                       X-value of left margin
+
         pageLine /header eq                                         % width x header                Is this the header?
         {
             PageHeight MarginTop sub                                % width x top                   If so, top margin
@@ -117,11 +117,12 @@
 /NextColumn {
 
     /pageLine 0 def                                                 %                               Reset line
-    /pageColumn pageColumn 1 add def                                %                               Next column
 
     /TempSectionOffset 0 def                                        %                               Reset any section offset made for column preservation
 
-    pageColumn ColumnPortions length eq                             % pageFull                      Are we out of columns?
+    /pageColumn pageColumn 1 add def                                %                               Next column
+
+    pageColumn ColumnPortions length eq                             % overflow                      Are we out of columns?
     { NextPage } if                                                 %                               If so, next page
 
 } def
@@ -129,14 +130,47 @@
 % Advance to Next Page
 /NextPage {
 
-    showpage                                                        %                               Finish off that page and start a new one
+    PrintHeaderFooter showpage                                      %                               Finish off that page and start a new one
+
+    /pageLine 0 def                                                 %                               Reset line
+    /pageColumn 0 def                                               %                               Reset column
+
+    /TempSectionOffset 0 def                                        %                               Reset any section offset made for column preservation
+    /SectionOffset 0 def                                            %                               Reset section offset
+
     /documentPage documentPage 1 add def                            %                               Increment page number
-    NewPage                                                         %                               Set up new page
 
 } def
 
-% Set Up New Page
-/NewPage {
+% Set Up New Section
+% FontHeight Leading ColumnPortions --> -
+%
+% Set ColumnPortions to zero to preserve columns between
+% sections
+/NewSection {
+
+    dup 0 eq dup /presColumns exch def                              % FontHeight Leading ColumnPortions presColumns     Keep track of whether the columns should be preserved
+    { pop } { /ColumnPortions exch def } ifelse                     % FontHeight Leading                                We can set this parameter as it doesn't affect Y-value
+
+    pageColumn 0 eq presColumns or                                  % FontHeight Leading changeColumns      Have we either used only one column or are using the same columns?
+    {
+        Line FontHeight add PageHeight MarginTop sub exch sub       % FontHeight Leading width x y          If so, calculate offset from the top of this line
+        presColumns { /TempSectionOffset } { /SectionOffset } ifelse% FontHeight Leading width x y /var     If we're preserving columns, we'll only be offsetting until the next column
+        exch def pop pop                                            % FontHeight Leading                    We can start the section where we are
+    } {
+        NextPage /SectionOffset 0 def                               % FontHeight Leading                    Otherwise, we must start the section on the next page
+    } ifelse
+
+    /Leading exch def                                               % FontHeight                    Set section parameters
+    /FontHeight exch def                                            %
+
+    /pageLine 0 def                                                 %                               Reset line
+    presColumns not { /pageColumn 0 def } if                        %                               Reset column if necessary
+
+} def
+
+% Print Header and Footer
+/PrintHeaderFooter {
 
     count /ignore exch def                                          %                               Ignore items in stack below this
 
@@ -170,38 +204,6 @@
     /FontHeight sectionFontHeight def                               %                               Restore section parameters
     /Leading sectionLeading def                                     %
 
-    /pageLine 0 def                                                 %                               Reset line
-    /pageColumn 0 def                                               %                               Reset column
-
-    /SectionOffset 0 def                                            %                               Reset section offset
-
-} def
-
-% Set Up New Section
-% FontHeight Leading ColumnPortions --> -
-%
-% Set ColumnPortions to zero to preserve columns between
-% sections
-/NewSection {
-
-    dup 0 eq dup /presColumns exch def                              % FontHeight Leading ColumnPortions presColumns     Keep track of whether the columns should be preserved
-    { pop } { /ColumnPortions exch def } ifelse                     % FontHeight Leading                                We can set this parameter as it doesn't affect Y-value
-
-    pageColumn 0 eq presColumns or                                  % FontHeight Leading changeColumns      Have we either used only one column or are using the same columns?
-    {
-        Line FontHeight add PageHeight MarginTop sub exch sub       % FontHeight Leading width x y          If so, calculate offset from the top of this line
-        presColumns { /TempSectionOffset } { /SectionOffset } ifelse% FontHeight Leading width x y /var     If we're preserving columns, we'll only be offsetting until the next column
-        exch def pop pop                                            % FontHeight Leading                    We can start the section where we are
-    } {
-        NextPage /SectionOffset 0 def                               % FontHeight Leading                    Otherwise, we must start the section on the next page
-    } ifelse
-
-    /Leading exch def                                               % FontHeight                    Set section parameters
-    /FontHeight exch def                                            %
-
-    /pageLine 0 def                                                 %                               Reset line
-    presColumns not { /pageColumn 0 def } if                        %                               Reset column if necessary
-
 } def
 
 % Change Header
@@ -233,14 +235,12 @@
 % Begin Document
 /Begin {
 
-    NewPage
-
 } def
 
 % End Document
 /End {
 
-    showpage
+    PrintHeaderFooter showpage                                      %                           Finish off final page
 
 } def
 
