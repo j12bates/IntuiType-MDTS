@@ -71,8 +71,8 @@ puts
 PageSetup.header_footer
 
 # Current Block Type/Order
-@cur_block_type = 0
-@cur_block_order = 0
+@block_type = 0
+@block_order = 0
 
 # Fonts
 @italic = false
@@ -83,13 +83,13 @@ PageSetup.header_footer
 def font_name()
 
     # If there is one font name, return it
-    single_name = Stylesheet.get(@cur_block_type, @cur_block_order, "font_name")
+    single_name = Stylesheet.get(@block_type, @block_order, "font_name")
     if !single_name.nil?
         name = single_name
 
     # Otherwise, get a font from the list
     else
-        font_names = Stylesheet.get(@cur_block_type, @cur_block_order, "font_names")
+        font_names = Stylesheet.get(@block_type, @block_order, "font_names")
         name = font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
 
     end
@@ -167,7 +167,7 @@ def place_word(word)
     # Font Changes
     cur_font = ""
     next_font = ""
-    if @cur_block_type != :code_block
+    if @block_type != :code_block
         cur_font = update_font(word, true)
         next_font = update_font(word, false)
     end
@@ -181,10 +181,10 @@ end
 def add_words(block_type, block_order, words)
 
     # Handle a New Block
-    if block_type != @cur_block_type || block_order != @cur_block_order
+    if block_type != @block_type || block_order != @block_order
         end_block
-        @cur_block_type = block_type
-        @cur_block_order = block_order
+        @block_type = block_type
+        @block_order = block_order
         start_block
     end
 
@@ -217,14 +217,14 @@ def handle_line(line)
 
     # Code Block Fence
     if words[0] == "```"
-        if @cur_block_type == :code_block
+        if @block_type == :code_block
             end_block
         else
             add_words(:code_block, 0, [])
         end
 
     # Handle Line in Code Block
-    elsif @cur_block_type == :code_block
+    elsif @block_type == :code_block
         print font_name
         if words.length > 0
             words[0].insert(0, " " * spaces)
@@ -273,8 +273,8 @@ def handle_line(line)
         @block_heading = true
 
     # Handle Continuing List Item
-    elsif @cur_block_type == :list_item
-        add_words(@cur_block_type, @cur_block_order, words)
+    elsif @block_type == :list_item
+        add_words(@block_type, @block_order, words)
 
     # Paragraph
     else
@@ -326,16 +326,16 @@ end
 def next_list_item_prefix(index)
 
     # Get rid of any lower-order list indices
-    @list_indices = @list_indices[0..@cur_block_order]
+    @list_indices = @list_indices[0..@block_order]
 
     # If the list is ordered and continuing, increment the index
-    if @list_indices[@cur_block_order] && index
-        @list_indices[@cur_block_order] += 1
-        index = @list_indices[@cur_block_order]
+    if @list_indices[@block_order] && index
+        @list_indices[@block_order] += 1
+        index = @list_indices[@block_order]
 
     # Otherwise, use the index given
     else
-        @list_indices[@cur_block_order] = index
+        @list_indices[@block_order] = index
 
     end
 
@@ -344,7 +344,7 @@ def next_list_item_prefix(index)
 
     # Ordered List Item Prefix
     if index
-        case Stylesheet.get(@cur_block_type, @cur_block_order, "numeral")
+        case Stylesheet.get(@block_type, @block_order, "numeral")
             when "alph_upcase"
                 prefix = ("A".."Z").to_a[index % 26 - 1]
             when "alph_downcase"
@@ -356,7 +356,7 @@ def next_list_item_prefix(index)
 
     # Unordered List Item Prefix
     else
-        case Stylesheet.get(@cur_block_type, @cur_block_order, "bullet")
+        case Stylesheet.get(@block_type, @block_order, "bullet")
             when "star", "asterisk"
                 return "\\052"
             when "arrow"
@@ -380,15 +380,15 @@ end
 def start_block()
 
     # Update Parameters
-    set_parameters(Stylesheet.get(@cur_block_type, @cur_block_order, "font_size"), Stylesheet.get(@cur_block_type, @cur_block_order, "leading"), Stylesheet.get(@cur_block_type, @cur_block_order, "column_portions"))
+    set_parameters(Stylesheet.get(@block_type, @block_order, "font_size"), Stylesheet.get(@block_type, @block_order, "leading"), Stylesheet.get(@block_type, @block_order, "column_portions"))
 
     # Update Status Variables
     @prev_block_heading = @block_heading
-    @block_heading = @cur_block_type == :heading
+    @block_heading = @block_type == :heading
 
     # Vertical Spacing
     unless @first_block
-        case Stylesheet.get(@cur_block_type, @cur_block_order, "space_above")
+        case Stylesheet.get(@block_type, @block_order, "space_above")
             when "always"
                 print "NextLine "
             when "not_after_heading"
@@ -400,12 +400,12 @@ def start_block()
     @first_block = false
 
     # If a list has ended, don't keep track of the index or order
-    if @cur_block_type != :list_item
+    if @block_type != :list_item
         @list_indices = []
     end
 
     # Starting Font Name
-    if @cur_block_type != :code_block
+    if @block_type != :code_block
         print font_name
     end
 
@@ -416,7 +416,7 @@ def print_proc()
 
     # Indentation
     indent = false
-    case Stylesheet.get(@cur_block_type, @cur_block_order, "indent")
+    case Stylesheet.get(@block_type, @block_order, "indent")
         when "always"
             indent = true
         when "not_after_heading"
@@ -426,7 +426,7 @@ def print_proc()
     # Justification/Alignment
     justify = false
     align = 0
-    case Stylesheet.get(@cur_block_type, @cur_block_order, "align")
+    case Stylesheet.get(@block_type, @block_order, "align")
         when "center"
             align = 1
         when "right"
@@ -444,20 +444,20 @@ end
 def end_block()
 
     # Printing Procedure
-    case @cur_block_type
+    case @block_type
         when :block_quote
             puts "PrintBlockQuote"
         when :heading
             puts print_proc
         when :list_item
-            puts @list_item_prefix_font_name + " (" + @list_item_prefix + ") " + @cur_block_order.to_s + " PrintListItem"
+            puts @list_item_prefix_font_name + " (" + @list_item_prefix + ") " + @block_order.to_s + " PrintListItem"
         when :paragraph
             puts print_proc
     end
 
     # Reset to Prevent this from Recurring
-    @cur_block_type = 0
-    @cur_block_order = 0
+    @block_type = 0
+    @block_order = 0
 
 end
 
