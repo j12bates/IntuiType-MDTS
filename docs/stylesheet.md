@@ -38,6 +38,18 @@ the value can be defined as an object containing number properties `left`, `righ
 If the value of the property is not defined properly,
 then it will default to `1` (in) or `25` (mm).
 
+### Headers and Footers
+Headers and footers are single lines of text within the top or bottom margin.
+A header can be created using the property `header`, and a footer can be created with the property `footer`.
+In addition, unique headers and footers for the first page can be made by using the properties `header-first` and `footer-first`.
+
+The value must be defined as an object containing number properties `font_size` and `leading`.
+It can also contain the object properties `left`, `center`, and/or `right`, which correspond to a mode of alignment.
+
+Each of those alignment objects must contain the string property `font_name`.
+They can also contain the string property `text`, which contains the actual text to be displayed,
+or the string property `special`, which can be set to `"PAGE_NUMBER"`.
+
 ### Other
 The length of an indent can be set by defining the property `indent` as a number.
 
