@@ -19,13 +19,12 @@
 =end
 
 # TODO - Both Emphasis Characters
-# TODO - Configure Header/Footer Directly
 
 # TODO - Clear Up Behaviour Concerning Missing Stylesheet Settings
 
-# TODO - Headers, Footers, Page Numbers, Draw After Content is Done
 # TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
 # TODO - Footnotes
+# TODO - Update Header for Nth Order Heading
 
 # TODO - Images/Graphics
 # TODO - PDF Output

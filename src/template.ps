@@ -22,7 +22,7 @@
 
 % Header Parameters
 /HeaderLeft { } def
-/HeaderCentre { } def
+/HeaderCenter { } def
 /HeaderRight { } def
 
 /HeaderFontHeight 12 def
@@ -30,7 +30,7 @@
 
 % Footer Parameters
 /FooterLeft { } def
-/FooterCentre { } def
+/FooterCenter { } def
 /FooterRight { } def
 
 /FooterFontHeight 12 def
@@ -129,6 +129,7 @@
 /NextPage {
 
     PrintHeaderFooter showpage                                      %                               Finish off that page and start a new one
+    NextHeaderFooter                                                %                               Update Header/Footer
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
@@ -182,7 +183,7 @@
 
     HeaderLeft count ignore sub 0 CalcLine
     pop false 0 0 PrintLine count ignore sub { pop } repeat         %                               Print left-aligned part of header
-    HeaderCentre count ignore sub 0 CalcLine
+    HeaderCenter count ignore sub 0 CalcLine
     pop false 1 0 PrintLine count ignore sub { pop } repeat         %                               Print centre-aligned part of header
     HeaderRight count ignore sub 0 CalcLine
     pop false 2 0 PrintLine count ignore sub { pop } repeat         %                               Print right-aligned part of header
@@ -194,7 +195,7 @@
 
     FooterLeft count ignore sub 0 CalcLine
     pop false 0 0 PrintLine count ignore sub { pop } repeat         %                               Print left-aligned part of footer
-    FooterCentre count ignore sub 0 CalcLine
+    FooterCenter count ignore sub 0 CalcLine
     pop false 1 0 PrintLine count ignore sub { pop } repeat         %                               Print centre-aligned part of footer
     FooterRight count ignore sub 0 CalcLine
     pop false 2 0 PrintLine count ignore sub { pop } repeat         %                               Print right-aligned part of footer
@@ -204,29 +205,35 @@
 
 } def
 
-% Change Header
-% { procLeft } { procCentre } { procRight } FontHeight Leading --> -
-/NewHeader {
+% Update Header/Footer
+/NextHeaderFooter {
 
-    /HeaderLeading exch def                                         % { procLeft } { procCentre } { procRight } FontHeight      Set header parameters
-    /HeaderFontHeight exch def                                      % { procLeft } { procCentre } { procRight }
+    /HeaderLeading /NextHeaderLeading NextVariable                  %                           Set header parameters
+    /HeaderFontHeight /NextHeaderFontHeight NextVariable            %
 
-    /HeaderRight exch def                                           % { procLeft } { procCentre }       Set header item routines
-    /HeaderCentre exch def                                          % { procLeft }
-    /HeaderLeft exch def                                            %
+    /HeaderRight /NextHeaderRight NextVariable                      %                           Set header item routines
+    /HeaderCenter /NextHeaderCenter NextVariable                    %
+    /HeaderLeft /NextHeaderLeft NextVariable                        %
+
+    /FooterLeading /NextFooterLeading NextVariable                  %                           Set footer parameters
+    /FooterFontHeight /NextFooterFontHeight NextVariable            %
+
+    /FooterRight /NextFooterRight NextVariable                      %                           Set footer item routines
+    /FooterCenter /NextFooterCenter NextVariable                    %
+    /FooterLeft /NextFooterLeft NextVariable                        %
 
 } def
 
-% Change Footer
-% { procLeft } { procCentre } { procRight } FontHeight Leading --> -
-/NewFooter {
+% Update Variable
+% /dest /next --> -
+/NextVariable {
 
-    /FooterLeading exch def                                         % { procLeft } { procCentre } { procRight } FontHeight      Set footer parameters
-    /FooterFontHeight exch def                                      % { procLeft } { procCentre } { procRight }
+    dup currentdict exch known                                      % /dest /next defined       Is the "next" value defined?
+    {
+        2 copy load def                                             % /dest /next               If so, set the variable to it
+    } if
 
-    /FooterRight exch def                                           % { procLeft } { procCentre }       Set footer item routines
-    /FooterCentre exch def                                          % { procLeft }
-    /FooterLeft exch def                                            %
+    currentdict exch undef pop                                      %                           Undefine to avoid overwriting any possible changes next time
 
 } def
 
@@ -459,7 +466,7 @@
     newpath                                                     %                                   New path
 
     Line moveto                                                 % width                             Move pointer to current line
-    0 FontHeight 2 div rmoveto                                  % width                             Centre of line
+    0 FontHeight 2 div rmoveto                                  % width                             Center of line
     0 rlineto                                                   %                                   Symmetric rule
 
     gsave                                                       %                                   Save Graphics Context

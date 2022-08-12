@@ -9,7 +9,7 @@ There should also be **leading,** or space between each line, and in this case i
 
 Here is another paragraph.
 The first line of this paragraph should be **indented,** meaning there is space between the left margin and the type,
-which in this case should be *one inch* of space.
+which in this case should be *half an inch* of space.
 There should also be one line's worth of space between this and the previous paragraph.
 Paragraph spacing is used in addition to indentation to emphasize the change in subject matter between paragraphs.
 

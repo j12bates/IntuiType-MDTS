@@ -110,42 +110,70 @@ class PageSetup
 # Set Up Header and Footer
     def PageSetup.header_footer()
 
-        ["header", "footer"].each do |header_footer|
+        # First Page and Subsequent Pages
+        [true, false].each do |first|
 
-            settings = Stylesheet.get_page(header_footer)
+            # Both Header and Footer
+            ["header", "footer"].each do |header_footer|
 
-            # Check Required Properties
-            if settings.nil? then next end
-            unless (settings["font_size"].is_a? Numeric) && (settings["leading"].is_a? Numeric) then next end
+                # Properties
+                settings = Stylesheet.get_page(header_footer + (first ? "_first" : ""))
 
-            # Procedures for Each Side
-            ["left", "center", "right"].each do |side|
+                # Check Required Properties
+                if settings.nil? then next end
+                unless (settings["font_size"].is_a? Numeric) && (settings["leading"].is_a? Numeric) then next end
 
-                print "{ "
+                # If there isn't something specific to the first page, use this on the first page
+                first = first || Stylesheet.get_page(header_footer + "_first").nil?
 
-                # Check if there is a valid setting
-                if !settings[side].nil? && (settings[side]["font_name"].is_a? String)
-                    print "/" + settings[side]["font_name"] + " "
+                # Each Side
+                ["left", "center", "right"].each do |side|
+
+                    items = ""
+
+                    # Check Required Properties
+                    if settings[side].nil? then next end
+                    unless (settings[side]["font_name"].is_a? String) then next end
+
+                    # Font Name
+                    items += "/" + settings[side]["font_name"] + " "
 
                     # Special Text
                     if (settings[side]["special"].is_a? String)
                         case settings[side]["special"]
                             when "PAGE_NUMBER"
-                                print "documentPage (    ) cvs "
+                                items += "documentPage (    ) cvs "
                         end
+
+                    # Plain Text
+                    elsif (settings[side]["text"].is_a? String)
+
+                        # Split into Words
+                        settings[side]["text"].split.each do |word|
+
+                            # Escape Characters
+                            word = word.gsub("\\", "\\\\\\\\")
+                            word = word.gsub("(", "\\(")
+                            word = word.gsub(")", "\\)")
+
+                            # Append Word
+                            items += "(" + word + ") "
+
+                        end
+
                     end
+
+                    # Define Side Procedure
+                    print "/" + (first ? "" : "Next") + header_footer.capitalize + side.capitalize + " { " + items + "} def "
 
                 end
 
-                print "} "
+                # Define Size and Leading
+                print "/" + (first ? "" : "Next") + header_footer.capitalize + "FontHeight " + settings["font_size"].to_s + " def "
+                print "/" + (first ? "" : "Next") + header_footer.capitalize + "Leading " + settings["leading"].to_s + " def "
+                puts
 
             end
-
-            # Font Size and Leading
-            print settings["font_size"].to_s + " " + settings["leading"].to_s + " "
-
-            # Procedure to Update Header/Footer
-            puts "New" + header_footer.capitalize
 
         end
 
