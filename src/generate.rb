@@ -18,14 +18,13 @@
 
 =end
 
-# TODO - Both Emphasis Characters
-
-# TODO - Clear Up Behaviour Concerning Missing Stylesheet Settings
-
-# TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
 # TODO - Footnotes
+# TODO - Page/Column Breaks
 # TODO - Update Header for Nth Order Heading
 
+# TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
+
+# TODO - Break Words that are Too Long for One Line
 # TODO - Images/Graphics
 # TODO - PDF Output
 
@@ -82,13 +81,13 @@ PageSetup.header_footer
 def font_name()
 
     # If there is one font name, return it
-    single_name = Stylesheet.get(@block_type, @block_order, "font_name")
+    single_name = Stylesheet.get(@block_type, @block_order, "font_name", false)
     if !single_name.nil?
         name = single_name
 
     # Otherwise, get a font from the list
     else
-        font_names = Stylesheet.get(@block_type, @block_order, "font_names")
+        font_names = Stylesheet.get(@block_type, @block_order, "font_names", true)
         name = font_names[(@mono ? 4 : 0) + (@bold ? 2 : 0) + (@italic ? 1 : 0)]
 
     end
@@ -113,9 +112,11 @@ def update_font(word, left)
     while word.length != 0
         case word[pos]
 
-            # (Double) Emphasis
-            when "*"
-                if word[pos + (left ? 1 : -1)] == "*"
+            # Emphasis
+            when "*", "_"
+
+                # Double
+                if word[pos + (left ? 1 : -1)] == "*" || word[pos + (left ? 1 : -1)] == "_"
 
                     # Only start emphasis from the left, only end from the right
                     if @bold == !left
@@ -127,6 +128,7 @@ def update_font(word, left)
                         pos += left ? 2 : -2
                     end
 
+                # Single
                 else
                     if @italic == !left
                         word.slice!(pos)
@@ -135,6 +137,7 @@ def update_font(word, left)
                     else
                         pos += left ? 1 : -1
                     end
+
                 end
 
             # Monospace
@@ -292,6 +295,9 @@ def set_parameters(font_size, leading, column_portions)
     # Font Size and Leading
     print font_size.to_s + " " + leading.to_s + " "
 
+    # Default Columns
+    if column_portions.nil? then column_portions = [1] end
+
     # Preserve Columns if Possible
     if column_portions == @column_portions
         print "0 "
@@ -343,7 +349,9 @@ def next_list_item_prefix(index)
 
     # Ordered List Item Prefix
     if index
-        case Stylesheet.get(@block_type, @block_order, "numeral")
+        case Stylesheet.get(@block_type, @block_order, "numeral", false)
+            when "arabic"
+                prefix = index.to_s
             when "alph_upcase"
                 prefix = ("A".."Z").to_a[index % 26 - 1]
             when "alph_downcase"
@@ -355,7 +363,9 @@ def next_list_item_prefix(index)
 
     # Unordered List Item Prefix
     else
-        case Stylesheet.get(@block_type, @block_order, "bullet")
+        case Stylesheet.get(@block_type, @block_order, "bullet", false)
+            when "bullet"
+                return "\\267"
             when "star", "asterisk"
                 return "\\052"
             when "arrow"
@@ -379,7 +389,7 @@ end
 def start_block()
 
     # Update Parameters
-    set_parameters(Stylesheet.get(@block_type, @block_order, "font_size"), Stylesheet.get(@block_type, @block_order, "leading"), Stylesheet.get(@block_type, @block_order, "column_portions"))
+    set_parameters(Stylesheet.get(@block_type, @block_order, "font_size", true), Stylesheet.get(@block_type, @block_order, "leading", true), Stylesheet.get(@block_type, @block_order, "column_portions", false))
 
     # Update Status Variables
     @prev_block_heading = @block_heading
@@ -387,13 +397,14 @@ def start_block()
 
     # Vertical Spacing
     unless @first_block
-        case Stylesheet.get(@block_type, @block_order, "space_above")
+        case Stylesheet.get(@block_type, @block_order, "space_above", false)
             when "always"
                 print "NextLine "
             when "not_after_heading"
                 unless @prev_block_heading
                     print "NextLine "
                 end
+            when "never"
         end
     end
     @first_block = false
@@ -415,17 +426,21 @@ def print_proc()
 
     # Indentation
     indent = false
-    case Stylesheet.get(@block_type, @block_order, "indent")
+    case Stylesheet.get(@block_type, @block_order, "indent", false)
         when "always"
             indent = true
         when "not_after_heading"
             indent = !@prev_block_heading
+        when "never"
+            indent = false
     end
 
     # Justification/Alignment
     justify = false
     align = 0
-    case Stylesheet.get(@block_type, @block_order, "align")
+    case Stylesheet.get(@block_type, @block_order, "align", false)
+        when "left"
+            align = 0
         when "center"
             align = 1
         when "right"

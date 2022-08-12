@@ -99,10 +99,12 @@ int main()
 
 ## Inline Formatting
 Inline formatting can be done with "delimiters".
-An asterisk (`*`) will enable emphasis (italic) when used at the beginning of a word (right of a space, newline, or other delimiter),
+
+An asterisk (`*`) or underscore (`_`) will enable emphasis (italic) when used at the beginning of a word (right of a space, newline, or other delimiter),
 or end emphasis when used at the end of a word (left of a space, newline, or other delimiter).
-Two asterisks (`**`) will act similarly, but begin or end double-emphasis (bold).
-Lastly, backticks (`` ` ``) will act similarly, but begin or end a code span (monotype).
+Two asterisks (`**`) or underscores (`__`) will act similarly, but begin or end double-emphasis (bold).
+
+Lastly, backticks (`` ` ``) will begin or end a code span (monotype).
 
 ```
 ordinary *italic **bold-italic* `mono-bold`**

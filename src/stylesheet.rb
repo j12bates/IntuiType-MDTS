@@ -21,6 +21,7 @@ require "json"
 class Stylesheet
 
     @@stylesheet = nil
+    @@default = JSON.parse(File.read(File.join(__dir__, "res", "default.json")))
 
     def Stylesheet.load(file)
         if @@stylesheet.nil?
@@ -28,15 +29,13 @@ class Stylesheet
         end
     end
 
-    stylesheet_file = "default"
-
     # Get Page Setting
     def Stylesheet.get_page(key)
         return @@stylesheet["page"][key]
     end
 
     # Get Currently Applicable Content Style Setting
-    def Stylesheet.get(block_type, block_order, key)
+    def Stylesheet.get(block_type, block_order, key, specific)
 
         # All Settings Specific to the Block Type
         styles_block = @@stylesheet["content"][block_type.to_s]
@@ -101,8 +100,13 @@ class Stylesheet
             return style_block
         end
 
-        # Otherwise, just use the global default
-        return style_default
+        # If we can use the root setting, use it
+        unless specific && style_default.nil?
+            return style_default
+        end
+
+        # Otherwise, just use the program default
+        return @@default["content"][key]
 
     end
 
