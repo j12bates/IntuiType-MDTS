@@ -2,7 +2,10 @@
 Stylesheets are JSON files containing settings that determine details about how a document is rendered.
 A stylesheet can be linked to a document when it is being compiled.
 
-The root schema can contain two subschema: `content`, and the optional `page`.
+The root schema can contain these subschema:
+- `page` (optional)
+- `macros` (optional)
+- `content` (required)
 
 ## Page Settings
 Page settings can be defined in the `page` schema.
@@ -57,6 +60,12 @@ The length of a gutter can be set by defining the property `gutter` as a number.
 
 If the value of either of these properties are not defined properly,
 then they will default to `0.5` (in) or `12.5` (mm).
+
+## Macros
+Macros can be defined in the `macros` schema.
+
+A macro can be defined by making a string property with a name containing lowercase letters, numbers, and hyphens,
+set to the raw source lines to expand to.
 
 ## Content Settings
 Settings pertaining to the rendering of content are defined as properties within the `content` schema.

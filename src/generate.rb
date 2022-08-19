@@ -31,7 +31,7 @@
 # TODO - PDF Output
 
 # TODO - Exact Output for Code Blocks (more than one space)
-# TODO - Debugging (mostly escape sequences and other input)
+# TODO - Debugging (escape sequences in source, things missing from stylesheet, invalid input)
 
 # Other Classes
 require_relative "stylesheet.rb"
@@ -269,7 +269,7 @@ def handle_line(line)
         end
 
     # Macro
-    elsif words.length == 1 && words[0].match?(/^\\[a-z0-9][a-z0-9-]+$/)
+    elsif words.length == 1 && words[0].match?(/^\\[a-z0-9-]+$/)
         end_block
         macro(words[0][1..-1])
         end_block

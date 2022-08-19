@@ -31,12 +31,12 @@ class Stylesheet
 
     # Get Page Setting
     def Stylesheet.get_page(key)
-        return @@stylesheet["page"][key]
+        return @@stylesheet["page"][key] rescue nil
     end
 
     # Get Macro
     def Stylesheet.get_macro(key)
-        return @@stylesheet["macros"][key]
+        return @@stylesheet["macros"][key] rescue nil
     end
 
     # Get Currently Applicable Content Style Setting

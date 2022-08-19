@@ -109,3 +109,15 @@ Lastly, backticks (`` ` ``) will begin or end a code span (monotype).
 ```
 ordinary *italic **bold-italic* `mono-bold`**
 ```
+
+## Macros
+Macros are a shorthand way to insert content provided by the stylesheet.
+This content can be made up of any blocks.
+When a macro is invoked, it causes the current block to end,
+and after the macro ends, a new block may begin.
+
+They can be denoted by a backslash (`\\`) followed by the macro name (lowercase letters, numbers, and hyphens) on a line.
+
+```
+\lorem-ipsum
+```
