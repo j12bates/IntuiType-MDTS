@@ -22,11 +22,17 @@
 # TODO - Page/Column Breaks
 # TODO - Update Header for Nth Order Heading
 
-# TODO - Stylesheets Can Add Things to Document and Prompt for Custom Content (e.g. memo to/from/subject)
+# TODO - Macros that can be Configured using Source in Stylesheets
+# TODO - Constant/Variable Input System, Memo Template
+# TODO - Multiple Content Settings Schema for Variety
 
+# TODO - New Sections are Offset from Lowest Column when Columns Change, Tables
 # TODO - Break Words that are Too Long for One Line
 # TODO - Images/Graphics
 # TODO - PDF Output
+
+# TODO - Exact Output for Code Blocks (more than one space)
+# TODO - Debugging (mostly escape sequences and other input)
 
 # Other Classes
 require_relative "stylesheet.rb"
@@ -69,7 +75,7 @@ puts
 PageSetup.header_footer
 
 # Current Block Type/Order
-@block_type = 0
+@block_type = nil
 @block_order = 0
 
 # Fonts
@@ -179,20 +185,31 @@ def place_word(word)
 
 end
 
-# Add Words
-def add_words(block_type, block_order, words)
-
-    # Handle a New Block
-    if block_type != @block_type || block_order != @block_order
-        end_block
-        @block_type = block_type
-        @block_order = block_order
-        start_block
-    end
-
-    # Place Words as Strings
+# Place Multiple Words and Font Changes
+def place_words(words)
     words.each do |word|
         place_word(word)
+    end
+end
+
+# Add Words to Block
+def add_words(words)
+
+    # Code Blocks are line-by-line
+    if @block_type == :code_block
+        print font_name
+        place_words(words)
+        puts "false false 0 PrintParagraph"
+
+    # Everything else can just deal with normal words
+    else
+        place_words(words)
+
+    end
+
+    # Headings are only one line
+    if @block_type == :heading
+        end_block
     end
 
 end
@@ -218,71 +235,77 @@ def handle_line(line)
     words = line.split
 
     # Code Block Fence
-    if words[0] == "```"
-        if @block_type == :code_block
+    if words == ["```"]
+        if @block_type != :code_block
             end_block
+            start_block(:code_block, 0)
         else
-            add_words(:code_block, 0, [])
+            end_block
         end
+        words.slice!(0)
 
-    # Handle Line in Code Block
+    # Continue a Code Block
     elsif @block_type == :code_block
-        print font_name
         if words.length > 0
             words[0].insert(0, " " * spaces)
         end
-        add_words(:code_block, 0, words)
-        puts "false false 0 PrintParagraph"
 
-    # Empty Line
+    # Start/Continue a Blockquote
+    elsif words[0] == ">"
+        if @block_type != :block_quote
+            end_block
+            start_block(:block_quote, 0)
+        end
+
+        words.slice!(0)
+        if words.length == 0
+            end_block
+        end
+
+    # Handle everything else
+
+    # Blank Line
     elsif words.length == 0
-        end_block
+        if @block_type != :code_block
+            end_block
+        end
 
     # Heading
     elsif words[0].count("#") == words[0].length && words[0].length >= 1 && words[0].length <= 6
-        order = words[0].length - 1
-        words.slice!(0)
-        add_words(:heading, order, words)
         end_block
-
-    # Blockquote
-    elsif words[0] == ">"
+        start_block(:heading, words[0].length - 1)
         words.slice!(0)
-        if words.length == 0 then end_block end
-        add_words(:block_quote, 0, words)
 
     # Ordered List Item
     elsif words[0][-1] == "." && (Integer(words[0][0..-2]) rescue false)
         end_block
-        words[0].slice!(-1)
-        add_words(:list_item, indent_level, [])
-        @list_item_prefix = next_list_item_prefix(Integer(words[0]))
+        start_block(:list_item, indent_level)
+        @list_item_prefix = next_list_item_prefix(Integer(words[0][0..-2]))
         words.slice!(0)
-        add_words(:list_item, indent_level, words)
 
     # Unordered List Item
     elsif words[0] == "-" || words[0] == "*" || words[0] == "+"
         end_block
-        add_words(:list_item, indent_level, [])
+        start_block(:list_item, indent_level)
         @list_item_prefix = next_list_item_prefix(false)
         words.slice!(0)
-        add_words(:list_item, indent_level, words)
 
     # Horizontal Rule
     elsif words[0].count("-") == words[0].length && words[0].length >= 3 && words.length == 1
         end_block
         puts "PrintRule"
         @block_heading = true
-
-    # Handle Continuing List Item
-    elsif @block_type == :list_item
-        add_words(@block_type, @block_order, words)
+        words.slice!(0)
 
     # Paragraph
-    else
-        add_words(:paragraph, 0, words)
+    elsif @block_type.nil? || @block_type == :block_quote
+        end_block
+        start_block(:paragraph, 0)
 
     end
+
+    # Add words
+    add_words(words)
 
 end
 
@@ -386,7 +409,11 @@ end
 @prev_block_heading = false
 
 # Start a Block
-def start_block()
+def start_block(type, order)
+
+    # Update Block Variables
+    @block_type = type
+    @block_order = order
 
     # Update Parameters
     set_parameters(Stylesheet.get(@block_type, @block_order, "font_size", true), Stylesheet.get(@block_type, @block_order, "leading", true), Stylesheet.get(@block_type, @block_order, "column_portions", false))
@@ -470,7 +497,7 @@ def end_block()
     end
 
     # Reset to Prevent this from Recurring
-    @block_type = 0
+    @block_type = nil
     @block_order = 0
 
 end

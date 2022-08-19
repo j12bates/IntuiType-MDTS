@@ -67,7 +67,7 @@ Any setting can be made to apply only to a particular block type by defining it 
 The valid names for block type subschema are as follows:
 - `paragraph`
 - `heading`
-- `blockquote`
+- `block_quote`
 - `list_item`
 - `code_block`
 
