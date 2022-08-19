@@ -2,6 +2,8 @@
 
 ---
 
+\lorem-ipsum
+
 Here is a sample document which was typeset using the `IntuiType Markdown Typesetter.`
 This paragraph should be **justified,** meaning the left side of the paragraph is flush with the left margin, and the right side is flush with the right margin,
 except the final line, unless it just happens to be the right length.

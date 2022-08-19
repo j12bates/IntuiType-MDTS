@@ -22,9 +22,8 @@
 # TODO - Page/Column Breaks
 # TODO - Update Header for Nth Order Heading
 
-# TODO - Macros that can be Configured using Source in Stylesheets
-# TODO - Constant/Variable Input System, Memo Template
-# TODO - Multiple Content Settings Schema for Variety
+# TODO - Constant/Variable Input System, Default Begin/End Macros, Memo Template
+# TODO - Switch Between Multiple Content Settings Schema
 
 # TODO - New Sections are Offset from Lowest Column when Columns Change, Tables
 # TODO - Break Words that are Too Long for One Line
@@ -69,6 +68,7 @@ ps_template.each do |line|
     print line
     if line.length != 0 then print " " end
 end
+puts
 puts
 
 # Header/Footer
@@ -208,16 +208,14 @@ def add_words(words)
     end
 
     # Headings are only one line
-    if @block_type == :heading
-        end_block
-    end
+    if @block_type == :heading then end_block end
 
 end
 
 # Indentation Levels
 @indent_levels = [0]
 
-# Handle One Line
+# Process One Line
 def handle_line(line)
 
     # Indentation
@@ -270,6 +268,13 @@ def handle_line(line)
             end_block
         end
 
+    # Macro
+    elsif words.length == 1 && words[0].match?(/^\\[a-z0-9][a-z0-9-]+$/)
+        end_block
+        macro(words[0][1..-1])
+        end_block
+        words.slice!(0)
+
     # Heading
     elsif words[0].count("#") == words[0].length && words[0].length >= 1 && words[0].length <= 6
         end_block
@@ -307,6 +312,19 @@ def handle_line(line)
     # Add words
     add_words(words)
 
+end
+
+# Process Lines
+def lines(lines)
+    lines.each do |line|
+        handle_line(line)
+    end
+end
+
+# Process Macro
+def macro(key)
+    lines = Stylesheet.get_macro(key).split("\n")
+    lines(lines)
 end
 
 # Set Parameters
@@ -508,13 +526,8 @@ source = File.open(ARGV[0], "r")
 # Begin Document
 puts "Begin"
 
-# Loop Through Lines
-source.each do |line|
-
-    # Handle Line
-    handle_line(line)
-
-end
+# Process Lines
+lines(source.each)
 end_block
 
 # End Document

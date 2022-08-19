@@ -34,6 +34,11 @@ class Stylesheet
         return @@stylesheet["page"][key]
     end
 
+    # Get Macro
+    def Stylesheet.get_macro(key)
+        return @@stylesheet["macros"][key]
+    end
+
     # Get Currently Applicable Content Style Setting
     def Stylesheet.get(block_type, block_order, key, specific)
 
