@@ -434,15 +434,15 @@ def start_block(type, order)
     @block_order = order
 
     # Update Parameters
-    set_parameters(Stylesheet.get(@block_type, @block_order, "font_size", true), Stylesheet.get(@block_type, @block_order, "leading", true), Stylesheet.get(@block_type, @block_order, "column_portions", false))
+    set_parameters(Stylesheet.get(type, order, "font_size", true), Stylesheet.get(type, order, "leading", true), Stylesheet.get(type, order, "column_portions", false))
 
     # Update Status Variables
     @prev_block_heading = @block_heading
-    @block_heading = @block_type == :heading
+    @block_heading = type == :heading
 
     # Vertical Spacing
     unless @first_block
-        case Stylesheet.get(@block_type, @block_order, "space_above", false)
+        case Stylesheet.get(type, order, "space_above", false)
             when "always"
                 print "NextLine "
             when "not_after_heading"
@@ -455,12 +455,12 @@ def start_block(type, order)
     @first_block = false
 
     # If a list has ended, don't keep track of the index or order
-    if @block_type != :list_item
+    if type != :list_item
         @list_indices = []
     end
 
     # Starting Font Name
-    if @block_type != :code_block
+    if type != :code_block
         print font_name
     end
 
