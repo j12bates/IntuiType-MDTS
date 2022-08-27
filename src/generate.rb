@@ -188,7 +188,16 @@ end
 # Place Multiple Words and Font Changes
 def place_words(words)
     words.each do |word|
-        place_word(word)
+
+        # Expand a Macro
+        if word.match?(/^\\[a-z0-9-]+$/)
+            macro(word[1..-1])
+
+        # Normal Word
+        else place_word(word)
+
+        end
+
     end
 end
 
@@ -268,12 +277,9 @@ def handle_line(line)
             end_block
         end
 
-    # Macro
-    elsif words.length == 1 && words[0].match?(/^\\[a-z0-9-]+$/)
-        end_block
-        macro(words[0][1..-1])
-        end_block
-        words.slice!(0)
+    # Ignore Macro Definition
+    elsif words[0] == "\\_def"
+        words = []
 
     # Heading
     elsif words[0].count("#") == words[0].length && words[0].length >= 1 && words[0].length <= 6
@@ -321,10 +327,29 @@ def lines(lines)
     end
 end
 
+# Local Macros
+@macros = {}
+
+# Scan for Local Macros
+def scan_local_macros(lines)
+    lines.each do |line|
+        words = line.split
+
+        # Check for Definition
+        if words[0] == "\\_def" && words[1].match(/^[a-z0-9-]+$/) && words.length > 2
+            @macros[words[1]] = words[2..-1].join(" ")
+        end
+
+    end
+end
+
 # Process Macro
 def macro(key)
-    lines = Stylesheet.get_macro(key).split("\n")
-    lines(lines)
+    macro = @macros[key]
+    if macro.nil? then macro = Stylesheet.get_macro(key) end
+    if macro.nil? then return end
+
+    lines(macro.split("\n"))
 end
 
 # Set Parameters
@@ -522,12 +547,17 @@ end
 
 # Source File
 source = File.open(ARGV[0], "r")
+lines = source.readlines
+lines.each do |line| line.chomp! end
+
+# Local Macros
+scan_local_macros(lines)
 
 # Begin Document
 puts "Begin"
 
 # Process Lines
-lines(source.each)
+lines(lines)
 end_block
 
 # End Document

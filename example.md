@@ -2,8 +2,6 @@
 
 ---
 
-\lorem-ipsum
-
 Here is a sample document which was typeset using the `IntuiType Markdown Typesetter.`
 This paragraph should be **justified,** meaning the left side of the paragraph is flush with the left margin, and the right side is flush with the right margin,
 except the final line, unless it just happens to be the right length.
@@ -14,6 +12,8 @@ The first line of this paragraph should be **indented,** meaning there is space 
 which in this case should be *half an inch* of space.
 There should also be one line's worth of space between this and the previous paragraph.
 Paragraph spacing is used in addition to indentation to emphasize the change in subject matter between paragraphs.
+
+\lorem-ipsum
 
 ## Additional Formatting
 
