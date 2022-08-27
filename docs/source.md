@@ -111,13 +111,19 @@ ordinary *italic **bold-italic* `mono-bold`**
 ```
 
 ## Macros
-Macros are a shorthand way to insert content provided by the stylesheet.
-This content can be made up of any blocks.
-When a macro is invoked, it causes the current block to end,
-and after the macro ends, a new block may begin.
+Macros are a shorthand way to insert content configured elsewhere in the source file or provided by the stylesheet.
+When a macro is invoked, it is rendered as though whatever content is assigned to it were in the same place.
+A macro can create its own blocks or be used within a block.
 
-They can be denoted by a backslash (`\\`) followed by the macro name (lowercase letters, numbers, and hyphens) on a line.
+Macros can be called by placing a backslash (`\\`) followed by the macro name (lowercase letters, numbers, and hyphens) at any place surrounded by spaces or newlines.
 
 ```
-\lorem-ipsum
+Name: \name-1
+```
+
+Macros can be defined by placing a backslash (`\\`) followed by `\_def` and a valid macro name (lowercase letters, numbers, and hyphens) at the start of a line,
+followed by the content to assign to the macro on the remainder of the line.
+
+```
+\_def name-1 **Doe,** John
 ```
