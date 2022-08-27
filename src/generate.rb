@@ -21,9 +21,9 @@
 # TODO - Footnotes
 # TODO - Page/Column Breaks
 # TODO - Update Header for Nth Order Heading
+# TODO - Consolidate Block-Quotes into Paragraphs with Control for Block Indentation
 
-# TODO - Constant/Variable Input System, Default Begin/End Macros, Memo Template
-# TODO - Switch Between Multiple Content Settings Schema
+# TODO - Macros for Current Date, Other Useful Information
 
 # TODO - New Sections are Offset from Lowest Column when Columns Change, Tables
 # TODO - Break Words that are Too Long for One Line
@@ -31,7 +31,7 @@
 # TODO - PDF Output
 
 # TODO - Exact Output for Code Blocks (more than one space)
-# TODO - Debugging (escape sequences in source, things missing from stylesheet, invalid input)
+# TODO - Testing/Debugging (escape sequences in source, things missing from stylesheet, invalid input)
 
 # Other Classes
 require_relative "stylesheet.rb"
@@ -555,10 +555,12 @@ scan_local_macros(lines)
 
 # Begin Document
 puts "Begin"
+macro("_begin")
 
 # Process Lines
 lines(lines)
 end_block
 
 # End Document
+macro("_end")
 puts "End"

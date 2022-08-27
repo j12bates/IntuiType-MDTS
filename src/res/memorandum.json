@@ -1,0 +1,46 @@
+{
+
+    "page": {
+        "size": "letter",
+        "margin": 1,
+        "indent": 0.5,
+        "gutter": 0.5,
+
+        "footer": {
+            "font_size": 12,
+            "leading": 0.15,
+
+            "center": {
+                "font_name": "Times-Roman",
+                "special": "PAGE_NUMBER"
+            }
+        }
+    },
+
+    "macros": {
+        "_begin": "**To** - \\to\n\n**From** - \\from\n\n**Date** - \\date\n\n**Subject** - \\subject\n\n---\n\n"
+    },
+
+    "content": {
+
+        "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
+        "font_size": 12,
+        "leading": 0.15,
+        "align": "justify",
+        "indent": "never",
+        "space_above": "not_after_heading",
+
+        "heading": {
+            "font_names": ["Times-Bold", "Times-BoldItalic", "Times-Bold", "Times-BoldItalic", "Courier-Bold", "Courier-BoldItalic", "Courier-Bold", "Courier-BoldItalic"],
+            "leading_highest": 0.5,
+            "leading_scale": 0.8,
+            "align_highest": "center"
+        },
+
+        "code_block": {
+            "font_name": "Courier"
+        }
+
+    }
+
+}

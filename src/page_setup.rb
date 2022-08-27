@@ -138,15 +138,8 @@ class PageSetup
                     # Font Name
                     items += "/" + settings[side]["font_name"] + " "
 
-                    # Special Text
-                    if (settings[side]["special"].is_a? String)
-                        case settings[side]["special"]
-                            when "PAGE_NUMBER"
-                                items += "documentPage (    ) cvs "
-                        end
-
                     # Plain Text
-                    elsif (settings[side]["text"].is_a? String)
+                    if (settings[side]["text"].is_a? String)
 
                         # Split into Words
                         settings[side]["text"].split.each do |word|
@@ -161,6 +154,16 @@ class PageSetup
 
                         end
 
+                    end
+
+                    # Special Text
+                    special = Array(settings[side]["special"])
+                    special.each do |i|
+                        if (i.is_a? String)
+                            if i == "PAGE_NUMBER"
+                                items += "documentPage (    ) cvs "
+                            end
+                        end
                     end
 
                     # Define Side Procedure

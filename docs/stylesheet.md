@@ -51,7 +51,7 @@ It can also contain the object properties `left`, `center`, and/or `right`, whic
 
 Each of those alignment objects must contain the string property `font_name`.
 They can also contain the string property `text`, which contains the actual text to be displayed,
-or the string property `special`, which can be set to `"PAGE_NUMBER"`.
+or the string property `special`, which can be set to `"PAGE_NUMBER"` to display the page number after any raw text.
 
 ### Other
 The length of an indent can be set by defining the property `indent` as a number.
