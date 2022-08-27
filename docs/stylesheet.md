@@ -64,7 +64,7 @@ then they will default to `0.5` (in) or `12.5` (mm).
 ## Macros
 Macros can be defined in the `macros` schema.
 
-A macro can be defined by making a string property with a name containing lowercase letters, numbers, and hyphens,
+A macro can be defined by making a string property with the macro name (lowercase letters, numbers, and hyphens),
 set to the raw source lines to expand to.
 
 ## Content Settings

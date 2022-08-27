@@ -121,8 +121,10 @@ Macros can be called by placing a backslash (`\\`) followed by the macro name (l
 Name: \name-1
 ```
 
-Macros can be defined by placing a backslash (`\\`) followed by `\_def` and a valid macro name (lowercase letters, numbers, and hyphens) at the start of a line,
+Macros can be defined locally by placing a backslash (`\\`) followed by `\_def` and a valid macro name (lowercase letters, numbers, and hyphens) at the start of a line,
 followed by the content to assign to the macro on the remainder of the line.
+Macros with the same name can be defined any number of times, but only the last definition is used.
+Local macro definitions override any stylesheet definitions.
 
 ```
 \_def name-1 **Doe,** John
