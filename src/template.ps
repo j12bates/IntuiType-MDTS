@@ -377,7 +377,7 @@
 } def
 
 % Print a Paragraph
-% BASE /f (word1) [/f] (word2)..[/f] (wordX) indent1 justify align -> BASE -
+% BASE /f (word1) [/f] (word2)..[/f] (wordX) indent indent1 justify align -> BASE -
 %
 % The stack should consist of only the words in the paragraph.
 % Words are individual strings optionally preceded by a font
@@ -390,11 +390,13 @@
 % justified are specified using booleans.
 /PrintParagraph {
 
-    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) indent1 justify align        No padding
-    /align exch def                                             % /f (word1)..[/f] (wordX) indent1 justify
-    /justify exch def                                           % /f (word1)..[/f] (wordX) indent1
+    /PaddingX 0 in def                                          % /f (word1)..[/f] (wordX) indent indent1 justify align     No padding
+    /align exch def                                             % /f (word1)..[/f] (wordX) indent indent1 justify
+    /justify exch def                                           % /f (word1)..[/f] (wordX) indent indent1
 
-    /indent exch { 1 } { 0 } ifelse def                         % /f (word1)..[/f] (wordX)          Indent the first line once if necessary
+    /indent exch { 1 } { 0 } ifelse def                         % /f (word1)..[/f] (wordX) indent       First line indent
+    /defaultIndent exch { 1 } { 0 } ifelse def                  % /f (word1)..[/f] (wordX)              Default indent
+
     {
 
         count indent CalcLine                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
@@ -402,26 +404,7 @@
         { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
         NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
 
-        /indent 0 def                                           % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)     This isn't the first line, so don't indent
-
-    } loop
-
-    NextLine                                                    %                                   We didn't advance a line last time
-
-} def
-
-% Print a Block-Quote
-% BASE /f (word1) [/f] (word2)..[/f] (wordX) -> BASE -
-/PrintBlockQuote {
-
-    /PaddingX Indent def                                        % /f (word1) [/f] (word2)..[/f] (wordX)     Pad by the indentation amount
-
-    {
-
-        count 0 CalcLine                                        % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final                            Calculate a line
-        dup not 0 0 4 -1 roll                                   % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width justify align indent final       Set up printing parameters and condition
-        { PrintLine exit } { PrintLine } ifelse                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Print line, exit if we're done
-        NextLine                                                % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)                                                                 Next line/column/page
+        /indent defaultIndent def                               % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX)     Revert to default indent
 
     } loop
 

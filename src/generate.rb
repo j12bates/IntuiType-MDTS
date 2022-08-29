@@ -21,7 +21,6 @@
 # TODO - Footnotes
 # TODO - Page/Column Breaks
 # TODO - Update Header for Nth Order Heading
-# TODO - Consolidate Block-Quotes into Paragraphs with Control for Block Indentation
 
 # TODO - Macros for Current Date, Other Useful Information
 
@@ -208,7 +207,7 @@ def add_words(words)
     if @block_type == :code_block
         print font_name
         place_words(words)
-        puts "false false 0 PrintParagraph"
+        puts "false false false 0 PrintParagraph"
 
     # Everything else can just deal with normal words
     else
@@ -249,7 +248,7 @@ def handle_line(line)
         else
             end_block
         end
-        words.slice!(0)
+        return
 
     # Continue a Code Block
     elsif @block_type == :code_block
@@ -496,13 +495,19 @@ def print_proc()
 
     # Indentation
     indent = false
+    indent1 = false
     case Stylesheet.get(@block_type, @block_order, "indent", false)
         when "always"
-            indent = true
+            indent1 = true
         when "not_after_heading"
-            indent = !@prev_block_heading
+            indent1 = !@prev_block_heading
         when "never"
-            indent = false
+            indent1 = false
+    end
+
+    if @block_type == :block_quote
+        indent = true
+        indent1 = true
     end
 
     # Justification/Alignment
@@ -520,7 +525,7 @@ def print_proc()
     end
 
     # Return Procedure with Arguments
-    return indent.to_s + " " + justify.to_s + " " + align.to_s + " PrintParagraph"
+    return indent.to_s + " " + indent1.to_s + " " + justify.to_s + " " + align.to_s + " PrintParagraph"
 
 end
 
@@ -530,7 +535,7 @@ def end_block()
     # Printing Procedure
     case @block_type
         when :block_quote
-            puts "PrintBlockQuote"
+            puts print_proc
         when :heading
             puts print_proc
         when :list_item
