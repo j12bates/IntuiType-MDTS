@@ -19,7 +19,6 @@
 =end
 
 # TODO - Footnotes
-# TODO - Page/Column Breaks
 # TODO - Update Header for Nth Order Heading
 
 # TODO - Place Generation in its own Class, Header/Footer can use Macros
@@ -190,7 +189,7 @@ def place_words(words)
     words.each do |word|
 
         # Expand a Macro
-        if word.match?(/^\\[a-z0-9-]+$/)
+        if word.match?(/^![a-z0-9-]+$/)
             macro(word[1..-1])
 
         # Normal Word
@@ -277,9 +276,13 @@ def handle_line(line)
             end_block
         end
 
-    # Ignore Macro Definition
-    elsif words[0] == "\\_def"
-        words = []
+    # Command
+    elsif words[0].match?(/^\\[a-z]+$/)
+        words[0].slice!(0)
+        end_block
+        command(words)
+        end_block
+        return
 
     # Heading
     elsif words[0].count("#") == words[0].length && words[0].length >= 1 && words[0].length <= 6
@@ -336,7 +339,7 @@ def scan_local_macros(lines)
         words = line.split
 
         # Check for Definition
-        if words[0] == "\\_def" && words[1].match(/^[a-z0-9-]+$/) && words.length > 2
+        if words[0] == "\\def" && words[1].match(/^[a-z0-9-]+$/) && words.length > 2
             @macros[words[1]] = words[2..-1].join(" ")
         end
 
@@ -350,6 +353,16 @@ def macro(key)
     if macro.nil? then return end
 
     lines(macro.split("\n"))
+end
+
+# Run Command
+def command(words)
+    case words[0]
+        when "newpage"
+            puts "NextPage"
+        when "newcolumn"
+            puts "NextColumn"
+    end
 end
 
 # Set Parameters

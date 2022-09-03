@@ -13,7 +13,8 @@ which in this case should be *half an inch* of space.
 There should also be one line's worth of space between this and the previous paragraph.
 Paragraph spacing is used in addition to indentation to emphasize the change in subject matter between paragraphs.
 
-\lorem-ipsum
+!lorem-ipsum
+\newcolumn
 
 ## Additional Formatting
 

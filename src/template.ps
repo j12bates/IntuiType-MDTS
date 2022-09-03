@@ -46,6 +46,7 @@
 /documentPage 1 def
 /pageColumn 0 def
 /pageLine 0 def
+/spaceLine false def
 
 
 % Get Position and Width of Current Line
@@ -104,6 +105,7 @@
 /NextLine {
 
     /pageLine pageLine 1 add def                                    %                               Next line
+    /spaceLine true def                                             %                               We can add spacing
 
     Line MarginBottom lt                                            % width x overflow              Is this line in the bottom margin?
     { NextColumn } if                                               % width x                       If so, next column
@@ -120,6 +122,7 @@
     /MaxSectionOffset exch def pop pop                              %                               Use offset if creating a new section
 
     /pageLine 0 def                                                 %                               Reset line
+    /spaceLine false def                                            %                               Don't add spacing from the top
 
     /TempSectionOffset 0 def                                        %                               Reset any section offset made for column preservation
 
@@ -138,6 +141,7 @@
 
     /pageLine 0 def                                                 %                               Reset line
     /pageColumn 0 def                                               %                               Reset column
+    /spaceLine false def                                            %                               Don't add spacing from the top
 
     /TempSectionOffset 0 def                                        %                               Reset any section offset made for column preservation
     /MaxSectionOffset 0 def                                         %                               Reset maximum section offset
@@ -160,8 +164,7 @@
 % Give One Line of Space
 /SpaceLine {
 
-    pageLine 0 eq SectionOffset 0 eq TempSectionOffset 0 eq and and % atTop                         Check if we are at the top of the page
-    not { NextLine } if                                             %                               Give one line if we are not
+    spaceLine { NextLine } if                                       %                               Give an extra exmpty line if we aren't at the top of the page
 
 } def
 
