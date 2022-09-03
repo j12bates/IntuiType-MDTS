@@ -22,14 +22,15 @@
 # TODO - Page/Column Breaks
 # TODO - Update Header for Nth Order Heading
 
-# TODO - Macros for Current Date, Other Useful Information
+# TODO - Place Generation in its own Class, Header/Footer can use Macros
 
-# TODO - New Sections are Offset from Lowest Column when Columns Change, Tables
+# TODO - Tables
 # TODO - Break Words that are Too Long for One Line
+# TODO - Exact Output for Code Blocks (more than one space)
+
 # TODO - Images/Graphics
 # TODO - PDF Output
 
-# TODO - Exact Output for Code Blocks (more than one space)
 # TODO - Testing/Debugging (escape sequences in source, things missing from stylesheet, invalid input)
 
 # Other Classes
@@ -468,10 +469,10 @@ def start_block(type, order)
     unless @first_block
         case Stylesheet.get(type, order, "space_above", false)
             when "always"
-                print "NextLine "
+                print "SpaceLine "
             when "not_after_heading"
                 unless @prev_block_heading
-                    print "NextLine "
+                    print "SpaceLine "
                 end
             when "never"
         end

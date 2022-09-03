@@ -41,6 +41,7 @@
 /PaddingX 0 in def
 /SectionOffset 0 in def
 /TempSectionOffset 0 in def
+/MaxSectionOffset 0 in def
 
 /documentPage 1 def
 /pageColumn 0 def
@@ -114,6 +115,10 @@
 % Advance to Next Column/Page
 /NextColumn {
 
+    Line MarginBottom lt                                            % width x overflow              Is this line in the bottom margin?
+    { -1 } { CalcOffset } ifelse                                    % width x MaxSectionOffset      If so, -1 means next page; otherwise calculate an offset
+    /MaxSectionOffset exch def pop pop                              %                               Use offset if creating a new section
+
     /pageLine 0 def                                                 %                               Reset line
 
     /TempSectionOffset 0 def                                        %                               Reset any section offset made for column preservation
@@ -135,9 +140,28 @@
     /pageColumn 0 def                                               %                               Reset column
 
     /TempSectionOffset 0 def                                        %                               Reset any section offset made for column preservation
+    /MaxSectionOffset 0 def                                         %                               Reset maximum section offset
     /SectionOffset 0 def                                            %                               Reset section offset
 
     /documentPage documentPage 1 add def                            %                               Increment page number
+
+} def
+
+% Calculate Offset from Top Margin to Current Position
+/CalcOffset {
+
+    Line 3 1 roll pop pop                                           % y                             Current line position
+    FontHeight add                                                  % y                             Top of line
+    PageHeight MarginTop sub                                        % y top                         Top margin
+    exch sub                                                        % offset                        Subtract to get offset
+
+} def
+
+% Give One Line of Space
+/SpaceLine {
+
+    pageLine 0 eq SectionOffset 0 eq TempSectionOffset 0 eq and and % atTop                         Check if we are at the top of the page
+    not { NextLine } if                                             %                               Give one line if we are not
 
 } def
 
@@ -153,11 +177,12 @@
 
     pageColumn 0 eq presColumns or                                  % FontHeight Leading changeColumns      Have we either used only one column or are using the same columns?
     {
-        Line FontHeight add PageHeight MarginTop sub exch sub       % FontHeight Leading width x y          If so, calculate offset from the top of this line
-        presColumns { /TempSectionOffset } { /SectionOffset } ifelse% FontHeight Leading width x y /var     If we're preserving columns, we'll only be offsetting until the next column
-        exch def pop pop                                            % FontHeight Leading                    We can start the section where we are
+        CalcOffset                                                  % FontHeight Leading offset             If so, calculate an offset
+        presColumns { /TempSectionOffset } { /SectionOffset } ifelse% FontHeight Leading offset /var        If we're preserving columns, we'll only be offsetting until the next column
+        exch def                                                    % FontHeight Leading                    We can start the section where we are
     } {
-        NextPage /SectionOffset 0 def                               % FontHeight Leading                    Otherwise, we must start the section on the next page
+        MaxSectionOffset -1 eq                                      % FontHeight Leading pageFull           Otherwise, check if the page is full
+        { NextPage } { /SectionOffset MaxSectionOffset def } ifelse % FontHeight Leading                    Start the section on the next page or under the previous section if possible
     } ifelse
 
     /Leading exch def                                               % FontHeight                    Set section parameters
@@ -340,8 +365,7 @@
             /err exch def                                       % /f (word1)../f (wordN) N indent
         } {
             pop 4 index length                                  % /f (word1)../f (wordN) N indent chars                 Otherwise, number of chars in word
-            1 sub div                                           % /f (word1)../f (wordN) N indent charErr               Calculate points to add to each char
-            /charErr exch def                                   % /f (word1)../f (wordN) N indent
+            div /charErr exch def                               % /f (word1)../f (wordN) N indent                       Calculate points to add to each char
         } ifelse
 
         Line 3 -1 roll pop                                      % /f (word1)../f (wordN) N indent x y                   Use default X-value to start at left margin
