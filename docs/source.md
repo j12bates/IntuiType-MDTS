@@ -112,20 +112,36 @@ ordinary *italic **bold-italic* `mono-bold`**
 
 ## Macros
 Macros are a shorthand way to insert content configured elsewhere in the source file or provided by the stylesheet.
-When a macro is invoked, it is rendered as though whatever content is assigned to it were in the same place.
+When a macro is called, it is rendered as though whatever content is assigned to it were in the same place.
 A macro can create its own blocks or be used within a block.
 
-Macros can be called by placing a backslash (`\\`) followed by the macro name (lowercase letters, numbers, and hyphens) at any place surrounded by spaces or newlines.
+Macros can be called by placing a bang (`!`) followed by the macro name (lowercase letters, numbers, and hyphens) at any place surrounded by spaces or newlines.
 
 ```
-Name: \name-1
+Name: !name-1
+```
+## Commands
+Additional operations not supported by ordinary Markdown can be accomplished through the use of commands.
+
+A command can be invoked by placing a backslach (`\\`) followed by the command name (lowercase letters) at the start of a line, followed by any arguments and a newline.
+This will end the current block.
+
+```
+\command arg1 arg2
 ```
 
-Macros can be defined locally by placing a backslash (`\\`) followed by `\_def` and a valid macro name (lowercase letters, numbers, and hyphens) at the start of a line,
-followed by the content to assign to the macro on the remainder of the line.
-Macros with the same name can be defined any number of times, but only the last definition is used.
+### Local Macro Definition
+Macros can be defined locally with the `def` command.
+The first argument is the macro name (lowercase letters, numbers, and hyphens),
+and any other arguments are interpreted as the content to assign to the macro.
+Macros can be defined with the same name any number of times, but only the last definition is used.
 Local macro definitions override any stylesheet definitions.
 
 ```
-\_def name-1 **Doe,** John
+\def name-1 **Doe,** John
 ```
+
+### Column/Page Breaks
+A column break can be done with the `newcolumn` command.
+
+A page break can be done with the `newpage` command.
