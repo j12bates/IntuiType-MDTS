@@ -18,6 +18,8 @@
 
 require "json"
 
+require_relative "macros.rb"
+
 class Stylesheet
 
     @@stylesheet = nil
@@ -26,6 +28,10 @@ class Stylesheet
     def Stylesheet.load(file)
         if @@stylesheet.nil?
             @@stylesheet = JSON.parse(File.read(File.join(__dir__, "res", file + ".json")))
+
+            @@stylesheet["macros"].each_pair do |key, string|
+                Macros.add(key, string)
+            end
         end
     end
 

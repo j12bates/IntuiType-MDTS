@@ -17,6 +17,7 @@
 =end
 
 require_relative "stylesheet.rb"
+require_relative "macros.rb"
 
 class PageSetup
 
@@ -140,30 +141,12 @@ class PageSetup
 
                     # Plain Text
                     if (settings[side]["text"].is_a? String)
-
-                        # Split into Words
-                        settings[side]["text"].split.each do |word|
-
-                            # Escape Characters
-                            word = word.gsub("\\", "\\\\\\\\")
-                            word = word.gsub("(", "\\(")
-                            word = word.gsub(")", "\\)")
-
-                            # Append Word
-                            items += "(" + word + ") "
-
-                        end
-
+                        items += PageSetup.place_words(settings[side]["text"])
                     end
 
-                    # Special Text
-                    special = Array(settings[side]["special"])
-                    special.each do |i|
-                        if (i.is_a? String)
-                            if i == "PAGE_NUMBER"
-                                items += "documentPage (    ) cvs "
-                            end
-                        end
+                    # Page Number
+                    if settings[side]["page_number"]
+                        items += "documentPage (    ) cvs "
                     end
 
                     # Define Side Procedure
@@ -179,6 +162,40 @@ class PageSetup
             end
 
         end
+
+    end
+
+# Place Words
+    private
+    def PageSetup.place_words(string)
+
+        items = ""
+
+        if string.nil? then return "" end
+
+        # Split into Words
+        string.split.each do |word|
+
+            # Expand Macro
+            if word.match?(/^![a-z0-9-]+$/)
+                items += PageSetup.place_words(Macros.get(word[1..-1]))
+
+            # Place Words
+            else
+
+                # Escape Characters
+                word = word.gsub("\\", "\\\\\\\\")
+                word = word.gsub("(", "\\(")
+                word = word.gsub(")", "\\)")
+
+                # Append Word
+                items += "(" + word + ") "
+
+            end
+
+        end
+
+        return items
 
     end
 

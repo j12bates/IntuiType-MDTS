@@ -23,7 +23,7 @@
 
 # TODO - Place Generation in its own Class, Header/Footer can use Macros
 
-# TODO - Tables
+# TODO - Sorta-Tables (tab a line, do part of a line in left-align and part in right)
 # TODO - Break Words that are Too Long for One Line
 # TODO - Exact Output for Code Blocks (more than one space)
 
@@ -35,6 +35,7 @@
 # Other Classes
 require_relative "stylesheet.rb"
 require_relative "page_setup.rb"
+require_relative "macros.rb"
 
 # PostScript Version
 puts "%!PS-Adobe-3.0"
@@ -69,9 +70,6 @@ ps_template.each do |line|
 end
 puts
 puts
-
-# Header/Footer
-PageSetup.header_footer
 
 # Current Block Type/Order
 @block_type = nil
@@ -177,6 +175,17 @@ def place_word(word)
     if @block_type != :code_block
         cur_font = update_font(word, true)
         next_font = update_font(word, false)
+
+    # Use Mono in Code Block, Preserve Existing Format
+    else
+        italic, bold, mono = @italic, @bold, @mono
+
+        @italic = @bold = false
+        @mono = true
+        cur_font = font_name
+
+        @italic, @bold, @mono = italic, bold, mono
+
     end
 
     # Echo Word as String with any Font Names
@@ -330,9 +339,6 @@ def lines(lines)
     end
 end
 
-# Local Macros
-@macros = {}
-
 # Scan for Local Macros
 def scan_local_macros(lines)
     lines.each do |line|
@@ -340,7 +346,7 @@ def scan_local_macros(lines)
 
         # Check for Definition
         if words[0] == "\\def" && words[1].match(/^[a-z0-9-]+$/) && words.length > 2
-            @macros[words[1]] = words[2..-1].join(" ")
+            Macros.add(words[1], words[2..-1].join(" "))
         end
 
     end
@@ -348,10 +354,8 @@ end
 
 # Process Macro
 def macro(key)
-    macro = @macros[key]
-    if macro.nil? then macro = Stylesheet.get_macro(key) end
+    macro = Macros.get(key)
     if macro.nil? then return end
-
     lines(macro.split("\n"))
 end
 
@@ -571,6 +575,9 @@ lines.each do |line| line.chomp! end
 
 # Local Macros
 scan_local_macros(lines)
+
+# Header/Footer
+PageSetup.header_footer
 
 # Begin Document
 puts "Begin"

@@ -24,7 +24,7 @@
 
             "center": {
                 "font_name": "Times-Roman",
-                "special": "PAGE_NUMBER"
+                "page_number": true
             }
         }
     },
@@ -55,10 +55,6 @@
             "align": "left",
             "indent": "never",
             "space_above": "not_after_heading"
-        },
-
-        "code_block": {
-            "font_name": "Courier"
         },
 
         "list_item": {
