@@ -51,7 +51,8 @@ It can also contain the object properties `left`, `center`, and/or `right`, whic
 
 Each of those alignment objects must contain the string property `font_name`.
 They can also contain the string property `text`, which contains the actual text to be displayed,
-or the string property `special`, which can be set to `"PAGE_NUMBER"` to display the page number after any raw text.
+in addition to any macro calls made with a bang (`!`) followed by the macro name, all surrounded by spaces or the ends of the string.
+In addition, they can contain the property `page_number`, which, when set to `true`, will display the page number after any given text.
 
 ### Other
 The length of an indent can be set by defining the property `indent` as a number.
