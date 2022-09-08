@@ -18,16 +18,9 @@
 
 =end
 
-# TODO - Footnotes
-# TODO - Update Header for Nth Order Heading
-
-# TODO - Place Generation in its own Class, Header/Footer can use Macros
-
 # TODO - Sorta-Tables (tab a line, do part of a line in left-align and part in right)
-# TODO - Break Words that are Too Long for One Line
 # TODO - Exact Output for Code Blocks (more than one space)
 
-# TODO - Images/Graphics
 # TODO - PDF Output
 
 # TODO - Testing/Debugging (escape sequences in source, things missing from stylesheet, invalid input)

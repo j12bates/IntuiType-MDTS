@@ -287,11 +287,12 @@
 % be placed at the top and a font name will be placed before
 % each.
 /CalcLine {
-
                                                                 % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent
     /curWidth 0 def                                             % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     If a word fits, the total width is here
     /nxtWidth 0 def                                             % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent     Used to check if a word will fit with previous whitespace
     /curWords 0 def
+
+    /tryTruncate true def
 
     /maxWidth Line pop pop                                      % /f (word1) [/f] (word2)..[/f] (wordX) maxItems indent /v width        Maximum line width
     2 index Indent mul sub def pop                              % /f (word1) [/f] (word2)..[/f] (wordX) maxItems                        Account for indentation if necessary
@@ -320,10 +321,32 @@
             curFontFace exch                                    % [/f] (nxt)../f (pre) /f (cur)     Otherwise, bury current font for print routine
             /maxItems maxItems 1 add def                        % [/f] (nxt)../f (pre) /f (cur)     Account for additional item
 
+            curFontFace findfont FontHeight scalefont setfont   % [/f] (nxt)../f (cur)              Set word font
+
+            % This part truncates the first word if it won't fit
+            dup stringwidth pop maxWidth gt tryTruncate and     % [/f] (nxt)../f (cur) truncate     Should we try to truncate this word to fit?
+            {
+                dup length -1 1                                 % [/f] (nxt)../f (cur) len -1 1     If so, start with the longest substring
+                {
+                                                                % [/f] (nxt)../f (cur) chars
+                    2 copy 0 exch getinterval                   % [/f] (nxt)../f (cur) chars (cur1)             Substring of current word
+                    dup stringwidth pop maxWidth le             % [/f] (nxt)../f (cur) chars (cur1) fits        Does this substring fit?
+                    {
+                        3 1 roll 1 index length                 % [/f] (nxt)../f (cur1) (cur) chars len
+                        1 index sub getinterval                 % [/f] (nxt)../f (cur1) (cur2)          Second part of current word
+                        curFontFace exch                        % [/f] (nxt)../f (cur1) /f (cur2)       Bury current font for print routine
+                        /maxItems maxItems 2 add def            % [/f] (nxt)../f (cur1) /f (cur2)       Account for new items
+                        maxItems 2 roll                         % /f (cur2) [/f] (nxt)../f (cur1)       Second part is next word, first part is current word
+                        exit                                    % [/f] (nxt)../f (cur)                  Exit loop
+                    } if
+                    pop pop                                     % [/f] (nxt)../f (cur)              Prepare for next iteration
+
+                } for
+            } if
+
             % This part checks if the word will fit in the line
             /final false def                                    % [/f] (nxt)../f (cur)              If we exit, this isn't the final line
 
-            curFontFace findfont FontHeight scalefont setfont   % [/f] (nxt)../f (cur)              Set word font
             dup stringwidth pop nxtWidth add                    % [/f] (nxt)../f (cur) width        Width of line including this word
             dup maxWidth gt { pop maxItems 2 roll exit } if     % [/f] (nxt)../f (cur) width        If word doesn't fit, stop here
             /curWidth exch def                                  % [/f] (nxt)../f (cur)              Otherwise, add to width
@@ -332,10 +355,11 @@
             % This part adds whitespace in case the next word also fits
             /nxtWidth ( ) stringwidth pop curWidth add def      % [/f] (nxt)../f (cur)              Width of line including this word with whitespace
 
+            /tryTruncate false def
+
         } ifelse
 
     } loop
-
                                                                 % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) 0 /f (word1)../f (wordN)
     curWords 2 mul 1 add -1 roll pop                            % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN)
     curWords curWidth final                                     % /f (wordN+1) [/f] (wordN+2)..[/f] (wordX) /f (word1)../f (wordN) N width final
@@ -367,7 +391,7 @@
             1 sub div                                           % /f (word1)../f (wordN) N indent err                   If so, calculate points to add to whitespace
             /err exch def                                       % /f (word1)../f (wordN) N indent
         } {
-            pop 4 index length                                  % /f (word1)../f (wordN) N indent chars                 Otherwise, number of chars in word
+            pop 3 index length                                  % /f (word1)../f (wordN) N indent balance chars         Otherwise, number of chars in word
             div /charErr exch def                               % /f (word1)../f (wordN) N indent                       Calculate points to add to each char
         } ifelse
 
@@ -391,7 +415,6 @@
 
     % This part prints each word
     -1 1 {
-
                                                                 % /f (cur)../f (wordN) i                i = words remaining
         dup 2 mul 1 add -2 roll                                 % /f (nxt)../f (wordN) i /f (cur)       Bring up current word or next font name
         exch findfont FontHeight scalefont setfont              % /f (nxt)../f (wordN) i (cur)          Set word font
