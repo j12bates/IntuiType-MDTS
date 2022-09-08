@@ -19,9 +19,9 @@
 =end
 
 # TODO - Sorta-Tables (tab a line, do part of a line in left-align and part in right)
-# TODO - Exact Output for Code Blocks (more than one space)
 
 # TODO - PDF Output
+# TODO - Write Stylesheets
 
 # TODO - Testing/Debugging (escape sequences in source, things missing from stylesheet, invalid input)
 
@@ -255,7 +255,7 @@ def handle_line(line)
     # Continue a Code Block
     elsif @block_type == :code_block
         if words.length > 0
-            words[0].insert(0, " " * spaces)
+            words = [line]
         end
 
     # Start/Continue a Blockquote

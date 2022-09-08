@@ -59,8 +59,7 @@ and in this case it should be *half an inch* wide.
 // This is a code block.
 #include <stdio.h>
 
-// Indentation is rendered and
-// no formatting is done.
+// Indentation is rendered and no formatting is done.
 int main()
 {
     printf("Hello, world!\n");
