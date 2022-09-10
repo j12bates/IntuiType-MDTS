@@ -23,7 +23,7 @@ class Macros
 
     # Add Macro
     def Macros.add(key, string)
-        unless key.match?(/^[a-z0-9-]+$/) then return end
+        unless key.match?(/^[a-z0-9-]+$/) || key == "_begin" || key == "_end" then return end
         @@macros[key] = string
     end
 

@@ -111,11 +111,11 @@ class PageSetup
 # Set Up Header and Footer
     def PageSetup.header_footer()
 
-        # First Page and Subsequent Pages
-        [true, false].each do |first|
+        # Both Header and Footer
+        ["header", "footer"].each do |header_footer|
 
-            # Both Header and Footer
-            ["header", "footer"].each do |header_footer|
+            # First Page and Subsequent Pages
+            [true, false].each do |first|
 
                 # Properties
                 settings = Stylesheet.get_page(header_footer + (first ? "_first" : ""))
