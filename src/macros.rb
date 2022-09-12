@@ -29,7 +29,8 @@ class Macros
 
     # Get Macro
     def Macros.get(key)
-        return @@macros[key]
+        m = @@macros[key]
+        return m.nil? ? "" : m
     end
 
 end

@@ -1,6 +1,7 @@
 {
 
     "page": {
+
         "size": "letter",
         "margin": 1,
         "indent": 0.5,
@@ -27,6 +28,7 @@
                 "page_number": true
             }
         }
+
     },
 
     "macros": {
@@ -52,9 +54,7 @@
             "leading": 0.5,
             "column_portions_highest": [1],
             "align_highest": "center",
-            "align": "left",
-            "indent": "never",
-            "space_above": "not_after_heading"
+            "align": "left"
         },
 
         "list_item": {

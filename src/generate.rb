@@ -191,8 +191,13 @@ def place_words(words)
     words.each do |word|
 
         # Expand a Macro
-        if word.match?(/^![a-z0-9-]+$/)
-            macro(word[1..-1])
+        if word.match?(/^![a-z0-9-]+$/) && @block_type != :code_block
+            lines = Macros.get(word[1..-1]).split("\n")
+            if lines == [] then lines = [""] end
+
+            # Handle first line like words; if there are more, handle like lines
+            place_words(lines[0].split)
+            if lines.length > 1 then lines(lines[1..-1]) end
 
         # Normal Word
         else place_word(word)
@@ -217,9 +222,6 @@ def add_words(words)
 
     end
 
-    # Headings are only one line
-    if @block_type == :heading then end_block end
-
 end
 
 # Indentation Levels
@@ -227,6 +229,9 @@ end
 
 # Process One Line
 def handle_line(line)
+
+    # Headings are only one line
+    if @block_type == :heading then end_block end
 
     # Indentation
     spaces = line.length - line.lstrip.length
@@ -254,9 +259,7 @@ def handle_line(line)
 
     # Continue a Code Block
     elsif @block_type == :code_block
-        if words.length > 0
-            words = [line]
-        end
+        words = [line]
 
     # Start/Continue a Blockquote
     elsif words[0] == ">"
@@ -274,9 +277,7 @@ def handle_line(line)
 
     # Blank Line
     elsif words.length == 0
-        if @block_type != :code_block
-            end_block
-        end
+        end_block
 
     # Command
     elsif words[0].match?(/^\\[a-z]+$/)
@@ -285,6 +286,11 @@ def handle_line(line)
         command(words)
         end_block
         return
+
+    # Expand a Macro by Handling Lines
+    elsif words[0].match?(/^![a-z0-9-]+$/)
+        lines(Macros.get(words[0][1..-1]).split("\n"))
+        words.slice!(0)
 
     # Heading
     elsif words[0].count("#") == words[0].length && words[0].length >= 1 && words[0].length <= 6
@@ -338,18 +344,11 @@ def scan_local_macros(lines)
         words = line.split
 
         # Check for Definition
-        if words[0] == "\\def" && words[1].match(/^[a-z0-9-]+$/) && words.length > 2
+        if words[0] == "\\def" && words[1].match?(/^[a-z0-9-]+$/) && words.length > 2
             Macros.add(words[1], words[2..-1].join(" "))
         end
 
     end
-end
-
-# Process Macro
-def macro(key)
-    macro = Macros.get(key)
-    if macro.nil? then return end
-    lines(macro.split("\n"))
 end
 
 # Run Command
@@ -516,9 +515,16 @@ def print_proc()
             indent1 = false
     end
 
+    # Block Quotes
     if @block_type == :block_quote
         indent = true
         indent1 = true
+
+    # Headings
+    elsif @block_type == :heading
+        indent = false
+        indent1 = false
+
     end
 
     # Justification/Alignment
@@ -574,12 +580,12 @@ PageSetup.header_footer
 
 # Begin Document
 puts "Begin"
-macro("_begin")
+lines(Macros.get("_begin").split("\n"))
 
 # Process Lines
 lines(lines)
 end_block
 
 # End Document
-macro("_end")
+lines(Macros.get("_end").split("\n"))
 puts "End"

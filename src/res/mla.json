@@ -1,0 +1,46 @@
+{
+
+    "page": {
+
+        "size": "letter",
+        "margin": 1,
+        "indent": 0.5,
+
+        "header": {
+            "font_size": 12,
+            "leading": 1,
+
+            "right": {
+                "font_name": "Times-Roman",
+                "text": "!lastname",
+                "page_number": true
+            }
+        }
+
+    },
+
+    "macros": {
+
+        "_begin": "#### !firstname !lastname\n#### !instructor\n#### !class\n#### !date"
+
+    },
+
+    "content": {
+
+        "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic"],
+        "font_size": 12,
+        "leading": 1,
+        "column_portions": [1],
+        "align": "left",
+        "indent": "always",
+        "space_above": "never",
+
+        "heading": {
+            "font_name_list": ["Times-Roman", "Times-Bold", "Times-Italic"],
+            "font_name_list_loop": true,
+            "align_highest": "center"
+        }
+
+    }
+
+}
