@@ -121,8 +121,9 @@ class PageSetup
                 settings = Stylesheet.get_page(header_footer + (first ? "_first" : ""))
 
                 # Check Required Properties
-                if settings.nil? then next end
-                unless (settings["font_size"].is_a? Numeric) && (settings["leading"].is_a? Numeric) then next end
+                unless settings.is_a? Hash then settings = {} end
+                unless settings["font_size"].is_a? Numeric then settings["font_size"] = 0 end
+                unless settings["leading"].is_a? Numeric then settings["leading"] = 0 end
 
                 # If there isn't something specific to the first page, use this on the first page
                 first = first || Stylesheet.get_page(header_footer + "_first").nil?
@@ -133,11 +134,14 @@ class PageSetup
                     items = ""
 
                     # Check Required Properties
-                    if settings[side].nil? then next end
-                    unless (settings[side]["font_name"].is_a? String) then next end
+                    unless settings[side].is_a? Hash then settings[side] = {} end
 
                     # Font Name
-                    items += "/" + settings[side]["font_name"] + " "
+                    if settings[side]["font_name"].is_a? String
+                        items += "/" + settings[side]["font_name"] + " "
+
+                    # If no font name, do nothing else
+                    else settings[side] = {} end
 
                     # Plain Text
                     if (settings[side]["text"].is_a? String)
