@@ -34,8 +34,11 @@ jobs:
             src/generate.rb example.md $i > $i.ps
           done
       
-      - name: generate pdf
-        run: ps2pdf *.ps
+      - name: generate pdfs
+        run: |
+          for i in *.ps; do
+            ps2pdf $i
+          done
           
       - uses: actions/upload-artifact@v3
         with:
