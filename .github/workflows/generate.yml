@@ -27,7 +27,7 @@ jobs:
         run: sudo apt install ghostscript
 
       - name: generate postscript
-        run: src/generate.rb example.md > output.ps
+        run: src/generate.rb example.md article-twocolumn > output.ps
       
       - name: generate pdf
         run: ps2pdf output.ps
