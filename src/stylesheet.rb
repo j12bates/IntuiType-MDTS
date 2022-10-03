@@ -28,7 +28,7 @@ class Stylesheet
     # Load Stylesheet
     def Stylesheet.load(file)
         if @@stylesheet.nil?
-            @@stylesheet = JSON.parse(File.read(File.join(__dir__, "res", file + ".json")))
+            @@stylesheet = JSON.parse(File.read(File.join(__dir__, "res", file + ".json"))) rescue @@default
 
             # Load Macros
             unless @@stylesheet["macros"].nil?

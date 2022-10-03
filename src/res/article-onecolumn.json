@@ -1,35 +1,23 @@
 {
 
     "page": {
+
         "size": "letter",
-        "margin": 1,
+        "margin": 1.5,
         "indent": 0.5,
         "gutter": 0.5,
 
-        "header": {
-            "font_size": 12,
-            "leading": 0.15,
-
-            "center": {
-                "font_name": "Times-Italic",
-                "text": "MEMORANDUM"
-            }
-        },
+        "header_first": {},
 
         "footer": {
             "font_size": 12,
             "leading": 0.15,
 
             "center": {
-                "font_name": "Times-Roman",
+                "font_name": "NewCenturySchlbk-Roman",
                 "page_number": true
             }
         }
-    },
-
-    "macros": {
-
-        "_begin": "**To:** !to\n\n**From:** !from\n\n**Date:** !date\n\n**Subject:** !subject\n\n"
 
     },
 
@@ -38,18 +26,22 @@
         "font_names": ["Times-Roman", "Times-Italic", "Times-Bold", "Times-BoldItalic", "Courier", "Courier-Italic", "Courier-Bold", "Courier-BoldItalic"],
         "font_size": 12,
         "leading": 0.15,
+        "column_portions": [1],
         "align": "justify",
-        "indent": "never",
-        "space_above": "always",
+        "indent": "not_after_heading",
+        "space_above": "not_after_heading",
 
         "heading": {
-            "font_name_highest": "Times-Bold",
-            "font_name_list": ["Times-Bold", "Times-Italic"],
-            "font_name": "Times-Roman",
-            "align_highest": "center"
+            "font_size_highest": 24,
+            "font_size_scale": 0.8,
+            "leading": 0.45,
+            "align_highest": "center",
+            "align": "left"
         },
 
         "list_item": {
+            "space_above_highest": "not_after_heading",
+            "space_above": "never",
             "numeral_highest": "arabic",
             "numeral": "alph_downcase",
             "bullet_list": ["bullet", "star", "arrow"],

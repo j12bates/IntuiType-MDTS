@@ -18,8 +18,6 @@
 
 =end
 
-# TODO - Sorta-Tables (tab a line, do part of a line in left-align and part in right)
-
 # TODO - PDF Output
 # TODO - Write Stylesheets
 
