@@ -30,7 +30,7 @@ jobs:
 
       - name: generate postscripts
         run: |
-          for i in `basename -a src/res/*`; do
+          for i in `basename -a -s .json src/res/*`; do
             src/generate.rb example.md $i > $i.ps
           done
       
