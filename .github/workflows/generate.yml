@@ -24,7 +24,9 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: install ghostscript
-        run: sudo apt install ghostscript
+        run: |
+          sudo apt update
+          sudo apt install ghostscript
 
       - name: generate postscript
         run: src/generate.rb example.md article-twocolumn > output.ps
