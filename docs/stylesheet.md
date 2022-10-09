@@ -78,6 +78,7 @@ The valid names for block type subschema are as follows:
 - `paragraph`
 - `heading`
 - `block_quote`
+- `hanging_indent`
 - `list_item`
 - `code_block`
 

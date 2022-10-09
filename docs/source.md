@@ -31,16 +31,25 @@ Horizontal rules are denoted by 3 or more hyphens (`---`) on a line by themselve
 ---
 ```
 
-### Blockquotes
-Blockquotes are denoted by a closing angle bracket (`>`) at the start of every line to be contained.
-If a line is empty besides the angle bracket, it starts a new blockquote.
+### Paragraphs with Special Indentation
+Paragraphs with different types of indentation are denoted by a certain number of closing angle brackets (`>`) at the start of every line to be contained.
+If a line is empty besides the angle brackets, it starts a new paragraph.
+
+#### Blockquotes
+Blockquotes are denoted by a single closing angle bracket (`>`).
 All blockquotes are level 1, nested blockquotes are not supported.
 
 ```markdown
-> Blockquotes can be split up into
-> multiple lines, like paragraphs
->
-> This will be a separate block
+> Blockquotes are typically used for quotes or excerpts that are over
+> four lines long
+```
+
+#### Hanging Indentation
+Hanging indentation is denoted by two closing angle brackets (`>>`).
+
+```markdown
+>> Hanging indentation is usually used for citations and linking to
+>> other resources
 ```
 
 ### List Items

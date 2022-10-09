@@ -271,6 +271,18 @@ def handle_line(line)
             end_block
         end
 
+    # Start/Continue a Hanging Indent
+    elsif words[0] == ">>"
+        if @block_type != :hanging_indent
+            end_block
+            start_block(:hanging_indent, 0)
+        end
+
+        words.slice!(0)
+        if words.length == 0
+            end_block
+        end
+
     # Handle everything else
 
     # Blank Line
@@ -318,7 +330,7 @@ def handle_line(line)
         words.slice!(0)
 
     # Paragraph
-    elsif @block_type.nil? || @block_type == :block_quote
+    elsif @block_type.nil? || @block_type == :block_quote || @block_type == :hanging_indent
         end_block
         start_block(:paragraph, 0)
 
@@ -518,6 +530,11 @@ def print_proc()
         indent = true
         indent1 = true
 
+    # Hanging Indents
+    elsif @block_type == :hanging_indent
+        indent = true
+        indent1 = false
+
     # Headings
     elsif @block_type == :heading
         indent = false
@@ -549,14 +566,10 @@ def end_block()
 
     # Printing Procedure
     case @block_type
-        when :block_quote
-            puts print_proc
-        when :heading
+        when :paragraph, :heading, :block_quote, :hanging_indent
             puts print_proc
         when :list_item
             puts @list_item_prefix_font_name + " (" + @list_item_prefix + ") " + @block_order.to_s + " PrintListItem"
-        when :paragraph
-            puts print_proc
     end
 
     # Reset to Prevent this from Recurring

@@ -20,11 +20,17 @@ Paragraph spacing is used in addition to indentation to emphasize the change in 
 
 ## Additional Formatting
 
+### Hanging Indents
+>> This is a paragraph with hanging indentation.
+>> Unlike the previous paragraphs, in this paragraph, the first line is left alone,
+>> and instead, all subsequent lines are indented.
+>> Hanging indentation is typically used to cite references in a bibliography.
+
 ### Block-Quotes
 > This is a block-quote.
-> The paragraph should be justified, and every line should be indented, making the paragraph appear horizontally condensed.
->
-> Block-quotes are generally used when a quote or excerpt is four lines or more.
+> Every line should be indented, making the paragraph appear horizontally condensed.
+> Block-quotes are generally used when a quote or excerpt is four lines or more,
+> as it might be difficult to keep track of quotation marks otherwise.
 
 ### Lists
 
