@@ -18,10 +18,10 @@
 
 =end
 
-# TODO - PDF Output
+# TODO - Wrapper Script, PDF Output
 # TODO - Write Stylesheets
 
-# TODO - Testing/Debugging (escape sequences in source, things missing from stylesheet, invalid input)
+# TODO - Testing/Debugging (things missing from stylesheet, invalid input)
 
 # Other Classes
 require_relative "stylesheet.rb"
@@ -45,7 +45,7 @@ puts "/mm { 2.83465 mul } def"
 
 # Stylesheet
 stylesheet_file = "default"
-if ARGV.length >= 2 then stylesheet_file = ARGV[1] end
+if ARGV.length >= 1 then stylesheet_file = ARGV[0] end
 
 Stylesheet.load(stylesheet_file)
 
@@ -100,51 +100,55 @@ end
 def update_font(word, left)
 
     font_changed = false
+    prev_emph = ""
+    prev_italic = nil
+    prev_pos = nil
 
     # Go through Delimeter Run
     pos = left ? 0 : -1
-    while word.length != 0
-        case word[pos]
+    while (char = word[pos]) && (left || word[pos - 1] != "\\")
 
-            # Emphasis
-            when "*", "_"
-
-                # Double
-                if word[pos + (left ? 1 : -1)] == "*" || word[pos + (left ? 1 : -1)] == "_"
-
-                    # Only start emphasis from the left, only end from the right
-                    if @bold == !left
-                        word.slice!(pos)
-                        word.slice!(pos)
-                        @bold = left
-                        font_changed = true
-                    else
-                        pos += left ? 2 : -2
-                    end
-
-                # Single
-                else
-                    if @italic == !left
-                        word.slice!(pos)
-                        @italic = left
-                        font_changed = true
-                    else
-                        pos += left ? 1 : -1
-                    end
-
-                end
-
-            # Monospace
-            when "`"
+        # Double Emphasis
+        if char == prev_emph
+            prev_emph = ""
+            @italic = prev_italic
+            if @bold == !left
                 word.slice!(pos)
-                @mono = !@mono
+                @bold = left
                 font_changed = true
-
-            # Normal char
+                if prev_pos
+                    word.slice!(prev_pos)
+                end
             else
-                break
+                pos += left ? 1 : -1
+            end
+
+        # Emphasis
+        elsif char == "*" || char == "_"
+            prev_emph = char
+            prev_italic = @italic
+            if @italic == !left
+                word.slice!(pos)
+                @italic = left
+                font_changed = true
+            else
+                prev_pos = pos
+                pos += left ? 1 : -1
+            end
+
+        # Monospace
+        elsif char == "`"
+            prev_emph = ""
+            word.slice!(pos)
+            @mono = !@mono
+            font_changed = true
+
+        # Normal char
+        else
+            break
 
         end
+
     end
 
     # Only return a font name if we should print it
@@ -155,17 +159,17 @@ end
 # Place a Word and any Font Changes
 def place_word(word)
 
-    # Escape Characters
-    word = word.gsub("\\", "\\\\\\\\")
-    word = word.gsub("(", "\\(")
-    word = word.gsub(")", "\\)")
-
     # Font Changes
     cur_font = ""
     next_font = ""
     if @block_type != :code_block
         cur_font = update_font(word, true)
         next_font = update_font(word, false)
+
+        # Retrieve Escaped Characters
+        while pos = word =~ /\\[\\`*_{}\[\]<>()#+\-.!|]/
+            word.slice!(pos)
+        end
 
     # Use Mono in Code Block, Preserve Existing Format
     else
@@ -178,6 +182,11 @@ def place_word(word)
         @italic, @bold, @mono = italic, bold, mono
 
     end
+
+    # Escape Characters
+    word = word.gsub("\\", "\\\\\\\\")
+    word = word.gsub("(", "\\(")
+    word = word.gsub(")", "\\)")
 
     # Echo Word as String with any Font Names
     print cur_font + "(" + word + ") " + next_font
@@ -579,9 +588,8 @@ def end_block()
 end
 
 # Source File
-source = File.open(ARGV[0], "r")
-lines = source.readlines
-lines.each do |line| line.chomp! end
+lines = []
+while line = STDIN.gets do lines.append(line.chomp) end
 
 # Local Macros
 scan_local_macros(lines)
