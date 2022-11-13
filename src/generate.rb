@@ -1,5 +1,3 @@
-#!/usr/bin/ruby
-
 =begin
 
     Copyright 2022 Jacob Bates

@@ -28,15 +28,11 @@ jobs:
           sudo apt update
           sudo apt install ghostscript
 
-      - name: generate postscript
-        run: src/generate.rb article-twocolumn < example.md > output.ps
-      
       - name: generate pdf
-        run: ps2pdf output.ps
-          
+        run: ./intuitype example.md example.pdf article-twocolumn
+
       - uses: actions/upload-artifact@v3
         with:
           name: example-output
           path: |
-            output.ps
-            output.pdf
+            example.pdf

@@ -4,6 +4,17 @@ Produces consistent results without much overhead or customization: just use som
 
 ---
 
+## Installation
+Install by simply running `make install` as root, with `$PREFIX` set appropriately if desired.
+
+## Usage
+```sh
+intuitype SOURCE DEST [STYLESHEET]
+```
+
+The source is the filename of an input markdown file, and the destination is the filename for an output PDF file.
+If no stylesheet is specified, `default` is used.
+
 ## Source Files
 A source file contains all the text to be included in the document.
 It it written using many of the conventions used by markdown, with some differences.
@@ -15,21 +26,9 @@ Stylesheets are used to format all elements of a document while it is being gene
 They are JSON files located in `src/res/`.
 Information on how they are interpreted can be found in `docs/stylesheets.md`.
 
-## Installation
-Install by copying the files in `src/` to a directory in `/opt/` or your preferred directory for installing software.
-Ensure that `generate.rb` is executable.
-
-```
-mkdir install_dir
-chmod +x src/generate.rb
-cp -r src/ install_dir/
-```
-
-## Usage
-```
-install_dir/generate.rb SOURCE_FILE [STYLESHEET]
-```
-PostScript output is put to `stdout`.
-A PDF can be generated using `ps2pdf`.
-
-If no stylesheet is specified when generating a document, `default` is used.
+Stylesheets available:
+- `default`
+- `article-onecolumn`
+- `article-twocolumn`
+- `memorandum`
+- `mla`
