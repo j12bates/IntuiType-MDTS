@@ -29,7 +29,7 @@ jobs:
           sudo apt install ghostscript
 
       - name: generate pdf
-        run: ./intuitype example.md example.pdf article-twocolumn
+        run: ruby src/generate.rb article-twocolumn < example.md | ps2pdf - example.pdf
 
       - uses: actions/upload-artifact@v3
         with:
