@@ -93,6 +93,7 @@ Unordered list items are denotes by a hyphen (`-`), asterisk (`\*`), or plus-sig
 ### Code Blocks
 Code Blocks are started and closed by a code fence, each made up of three backticks (```` ``` ````).
 Any existing inline formatting settings are ignored within a code block, and they cannot be changed.
+Any characters within code blocks are treated as literal characters, and serve no extended function.
 All code blocks are level 1.
 
 ````markdown
@@ -129,6 +130,9 @@ Macros can be called by placing a bang (`!`) followed by the macro name (lowerca
 ```
 Name: !name-1
 ```
+
+Since code blocks treat all characters as literal characters (including bangs), macros cannot be used within code blocks.
+
 ## Commands
 Additional operations not supported by ordinary Markdown can be accomplished through the use of commands.
 
@@ -138,6 +142,8 @@ This will end the current block.
 ```
 \command arg1 arg2
 ```
+
+Since code blocks treat all characters as literal characters (including backslashes), commands cannot be used within code blocks.
 
 ### Local Macro Definition
 Macros can be defined locally with the `def` command.
@@ -154,3 +160,11 @@ Local macro definitions override any stylesheet definitions.
 A column break can be done with the `newcolumn` command.
 
 A page break can be done with the `newpage` command.
+
+### Escaping Characters
+A literal character otherwise used for formatting can be input outside a code block by prefixing it with a backslash (`\\`).
+Any of the following characters can be escaped:
+
+```
+\ ` * _ { } [ ] < > ( ) # + - . ! |
+```
